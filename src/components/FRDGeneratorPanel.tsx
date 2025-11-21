@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download } from 'lucide-react';
 import { Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
 import { generateFRDDocument } from '../lib/frdGenerator';
+import HTMLCanvasEditor from './HTMLCanvasEditor';
 
 interface FRDGeneratorPanelProps {
   templateName: string;
@@ -27,6 +28,7 @@ export default function FRDGeneratorPanel({
   const handleDownloadFRD = async () => {
     setIsGenerating(true);
     try {
+      templateHtml = htmlToFormattedText(templateHtml);
       await generateFRDDocument({
         templateName,
         templateDescription,
@@ -43,6 +45,71 @@ export default function FRDGeneratorPanel({
       setIsGenerating(false);
     }
   };
+
+  function htmlToFormattedText(html: string): string {
+    if (!html) return "";
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    // Remove style/script tags
+    doc.querySelectorAll("style, script").forEach((el) => el.remove());
+
+    function nodeToText(node: Node): string {
+      
+      let text = "";
+
+    node.childNodes.forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const value = child.textContent || "";
+        text += value.replace(/\s+/g, " ").trim();
+      }
+
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as HTMLElement;
+
+        // Line break elements
+        if (["BR"].includes(el.tagName)) {
+          text += "\n";
+        }
+
+        // Block elements → add line breaks before & after
+        if (["P", "DIV", "SECTION", "ARTICLE"].includes(el.tagName)) {
+          text += "\n" + nodeToText(el) + "\n";
+        }
+
+        // Headings → add blank line
+        else if (["H1","H2","H3","H4","H5","H6"].includes(el.tagName)) {
+          text += "\n" + nodeToText(el) + "\n";
+        }
+
+        // List items
+        else if (el.tagName === "LI") {
+          text += "• " + nodeToText(el) + "\n";
+        }
+
+        // Buttons or anchors
+        else if (["A", "BUTTON"].includes(el.tagName)) {
+          text += "[" + (el.textContent?.trim() || "") + "] ";
+        }
+
+        // Default: recurse
+        else if (!["P","DIV","SECTION","ARTICLE","H1","H2","H3","H4","H5","H6","LI","BR","A","BUTTON"].includes(el.tagName)) {
+          text += nodeToText(el);
+        }
+      }
+    });
+
+    return text;
+  }
+
+  let result = nodeToText(doc.body);
+
+  // Cleanup multiple blank lines
+  result = result.replace(/\n{3,}/g, "\n\n");
+
+  return result.trim();
+}
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800">
@@ -202,7 +269,8 @@ export default function FRDGeneratorPanel({
             </h3>
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
               <pre className="text-xs text-gray-800 dark:text-gray-200 font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
-                {templateHtml || 'No content yet'}
+                {htmlToFormattedText(templateHtml) || "No content yet"}
+                
               </pre>
             </div>
           </div>
