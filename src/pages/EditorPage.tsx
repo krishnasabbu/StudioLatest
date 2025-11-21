@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown, FileText } from 'lucide-react';
+import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown, FileText, Play } from 'lucide-react';
 import HTMLCanvasEditor from '../components/HTMLCanvasEditor';
 import SelectionToolbar from '../components/SelectionToolbar';
 import VariablePanel from '../components/VariablePanel';
@@ -8,6 +8,7 @@ import HyperlinkPanel from '../components/HyperlinkPanel';
 import CTAPanel from '../components/CTAPanel';
 import FRDGeneratorPanel from '../components/FRDGeneratorPanel';
 import LiveEmailPreview from '../components/LiveEmailPreview';
+import LivePreviewModal from '../components/modals/LivePreviewModal';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
 import {
   renderTemplate,
@@ -43,6 +44,7 @@ export default function EditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['variables']));
   const [showHelp, setShowHelp] = useState(false);
+  const [showLivePreview, setShowLivePreview] = useState(false);
 
   useEffect(() => {
     const loadExistingTemplate = async () => {
@@ -352,6 +354,13 @@ export default function EditorPage() {
                 <HelpCircle size={20} />
               </button>
               <button
+                onClick={() => setShowLivePreview(true)}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-wf-gold bg-wf-gold text-gray-900 rounded-lg hover:bg-yellow-500 hover:border-yellow-600 font-bold transition-all shadow-md"
+              >
+                <Play size={18} strokeWidth={2.5} />
+                Live Preview
+              </button>
+              <button
                 onClick={handleExport}
                 className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 font-bold transition-all shadow-md"
               >
@@ -584,6 +593,16 @@ export default function EditorPage() {
           </div>
         </div>
       </div>
+
+      <LivePreviewModal
+        isOpen={showLivePreview}
+        onClose={() => setShowLivePreview(false)}
+        templateHtml={templateHtml}
+        variables={variables}
+        conditions={conditions}
+        hyperlinks={hyperlinks}
+        ctaButtons={ctaButtons}
+      />
     </div>
   );
 }

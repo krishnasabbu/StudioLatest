@@ -1,10 +1,12 @@
 export type VariableType = 'string' | 'number' | 'boolean' | 'image' | 'url' | 'array' | 'object';
+export type FormatterType = 'none' | 'currency' | 'date' | 'datetime' | 'time' | 'percentage' | 'uppercase' | 'lowercase' | 'capitalize';
 
 export interface Variable {
   id: string;
   name: string;
   type: VariableType;
   description?: string;
+  formatter?: FormatterType;
 }
 
 export type ConditionOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'notContains';

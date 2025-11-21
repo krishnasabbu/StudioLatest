@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
-import { Variable, VariableType } from '../types/template';
+import { Variable, VariableType, FormatterType } from '../types/template';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface VariablePanelProps {
@@ -17,6 +17,7 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
     name: '',
     type: 'string',
     description: '',
+    formatter: 'none',
   });
 
   const handleAdd = () => {
@@ -27,10 +28,11 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
       name: newVariable.name.trim(),
       type: newVariable.type || 'string',
       description: newVariable.description || '',
+      formatter: newVariable.formatter || 'none',
     };
 
     onVariablesChange([...variables, variable]);
-    setNewVariable({ name: '', type: 'string', description: '' });
+    setNewVariable({ name: '', type: 'string', description: '', formatter: 'none' });
     setShowAddForm(false);
   };
 
@@ -44,7 +46,7 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
 
     const updated = variables.map((v) =>
       v.id === editingId
-        ? { ...v, name: editForm.name!, type: editForm.type!, description: editForm.description || '' }
+        ? { ...v, name: editForm.name!, type: editForm.type!, description: editForm.description || '', formatter: editForm.formatter || 'none' }
         : v
     );
 
@@ -125,6 +127,21 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
               <option value="array">Array</option>
               <option value="object">Object</option>
             </select>
+            <select
+              value={newVariable.formatter}
+              onChange={(e) => setNewVariable({ ...newVariable, formatter: e.target.value as FormatterType })}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-2"
+            >
+              <option value="none">No Formatter</option>
+              <option value="currency">Currency ($)</option>
+              <option value="date">Date (MM/DD/YYYY)</option>
+              <option value="datetime">Date & Time</option>
+              <option value="time">Time (HH:MM)</option>
+              <option value="percentage">Percentage (%)</option>
+              <option value="uppercase">UPPERCASE</option>
+              <option value="lowercase">lowercase</option>
+              <option value="capitalize">Capitalize</option>
+            </select>
             <input
               type="text"
               placeholder="Description (optional)"
@@ -175,6 +192,23 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
                     <option value="array">Array</option>
                     <option value="object">Object</option>
                   </select>
+                  <select
+                    value={editForm.formatter || 'none'}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, formatter: e.target.value as FormatterType })
+                    }
+                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm mb-2"
+                  >
+                    <option value="none">No Formatter</option>
+                    <option value="currency">Currency ($)</option>
+                    <option value="date">Date (MM/DD/YYYY)</option>
+                    <option value="datetime">Date & Time</option>
+                    <option value="time">Time (HH:MM)</option>
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="uppercase">UPPERCASE</option>
+                    <option value="lowercase">lowercase</option>
+                    <option value="capitalize">Capitalize</option>
+                  </select>
                   <input
                     type="text"
                     value={editForm.description}
@@ -220,6 +254,11 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
                       </div>
                       {variable.description && (
                         <p className="text-xs text-gray-500">{variable.description}</p>
+                      )}
+                      {variable.formatter && variable.formatter !== 'none' && (
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                          {variable.formatter}
+                        </span>
                       )}
                     </div>
                     <div className="flex gap-1">
