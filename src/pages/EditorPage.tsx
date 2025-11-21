@@ -135,6 +135,27 @@ export default function EditorPage() {
     setSelection(null);
   };
 
+  const handleCreateAndWrapCondition = (condition: ConditionDefinition) => {
+    setConditions((prev) => [...prev, condition]);
+
+    if (!selection?.element) return;
+
+    const element = selection.element;
+    const wrappedHtml = wrapWithNamedCondition(element.outerHTML, condition.name);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = wrappedHtml;
+
+    element.parentNode?.replaceChild(tempDiv.firstChild!, element);
+
+    const parent = tempDiv.closest('[contenteditable]');
+    if (parent) {
+      setTemplateHtml(parent.innerHTML);
+    }
+
+    setSelection(null);
+  };
+
   const handleWrapLoop = (arrayVariable: string) => {
     if (!selection?.element) return;
 
@@ -563,8 +584,10 @@ export default function EditorPage() {
               selection={selection}
               position={toolbarPosition}
               conditions={conditions}
+              variables={variables}
               onMakeVariable={handleMakeVariable}
               onWrapCondition={handleWrapCondition}
+              onCreateAndWrapCondition={handleCreateAndWrapCondition}
               onWrapLoop={handleWrapLoop}
               onInsertLink={handleInsertLink}
               onInsertCTA={handleInsertCTA}

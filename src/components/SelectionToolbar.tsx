@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { X, Variable as VariableIcon, GitBranch, Repeat, Link2, Square, Plus } from 'lucide-react';
-import { SelectionInfo, ConditionDefinition } from '../types/template';
+import { SelectionInfo, ConditionDefinition, Variable as VariableType, ConditionOperator, LogicOperator } from '../types/template';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface SelectionToolbarProps {
   selection: SelectionInfo | null;
   position: { x: number; y: number };
   conditions: ConditionDefinition[];
+  variables: VariableType[];
   onMakeVariable: (variableName: string) => void;
   onWrapCondition: (conditionName: string) => void;
+  onCreateAndWrapCondition: (condition: ConditionDefinition) => void;
   onWrapLoop: (arrayVariable: string) => void;
   onInsertLink: (url: string, text: string) => void;
   onInsertCTA: (text: string, url: string) => void;
@@ -19,23 +21,30 @@ export default function SelectionToolbar({
   selection,
   position,
   conditions,
+  variables,
   onMakeVariable,
   onWrapCondition,
+  onCreateAndWrapCondition,
   onWrapLoop,
   onInsertLink,
   onInsertCTA,
   onClose
 }: SelectionToolbarProps) {
   const { theme } = useTheme();
-  const [mode, setMode] = useState<'menu' | 'variable' | 'condition' | 'loop' | 'link' | 'cta'>('menu');
+  const [mode, setMode] = useState<'menu' | 'variable' | 'condition' | 'newCondition' | 'loop' | 'link' | 'cta'>('menu');
   const [variableName, setVariableName] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
-  const [showCreateNewCondition, setShowCreateNewCondition] = useState(false);
   const [loopVar, setLoopVar] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState(selection?.content || '');
   const [ctaText, setCtaText] = useState(selection?.content || '');
   const [ctaUrl, setCtaUrl] = useState('');
+
+  const [newConditionName, setNewConditionName] = useState('');
+  const [newConditionDescription, setNewConditionDescription] = useState('');
+  const [newConditionVariable, setNewConditionVariable] = useState('');
+  const [newConditionOperator, setNewConditionOperator] = useState<ConditionOperator>('==');
+  const [newConditionValue, setNewConditionValue] = useState('');
 
   if (!selection) return null;
 
@@ -55,6 +64,36 @@ export default function SelectionToolbar({
       setMode('menu');
       onClose();
     }
+  };
+
+  const handleCreateNewCondition = () => {
+    if (!newConditionName.trim() || !newConditionVariable || !newConditionValue.trim()) return;
+
+    const newCondition: ConditionDefinition = {
+      id: Date.now().toString(),
+      name: newConditionName.trim(),
+      description: newConditionDescription.trim(),
+      clauses: [
+        {
+          variable: newConditionVariable,
+          operator: newConditionOperator,
+          value: newConditionValue.trim(),
+          valueType: 'literal',
+        },
+      ],
+      logicOperator: 'AND',
+      content: selection?.content || '',
+      hasElse: false,
+    };
+
+    onCreateAndWrapCondition(newCondition);
+    setNewConditionName('');
+    setNewConditionDescription('');
+    setNewConditionVariable('');
+    setNewConditionOperator('==');
+    setNewConditionValue('');
+    setMode('menu');
+    onClose();
   };
 
   const handleWrapLoop = () => {
@@ -223,9 +262,13 @@ export default function SelectionToolbar({
             </>
           )}
 
-          <div className={`text-xs ${textSecondaryClass} mb-2 text-center`}>
-            Need a new condition? Create one in the Conditions panel on the left.
-          </div>
+          <button
+            onClick={() => setMode('newCondition')}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 mb-3 border-2 border-dashed border-green-500 text-green-600 dark:text-green-400 rounded-lg text-sm font-bold ${hoverClass} transition-all`}
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            Create New Condition
+          </button>
 
           <div className="flex gap-2">
             <button
@@ -240,6 +283,125 @@ export default function SelectionToolbar({
               className={`px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold ${hoverClass} ${textClass} transition-all`}
             >
               Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'newCondition' && (
+        <div className="p-4 max-w-md">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-sm font-bold ${textClass}`}>Create New Condition</h3>
+            <button onClick={() => setMode('condition')} className="text-gray-400 hover:text-wf-red">
+              <X size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          <div className="mb-3">
+            <label className={`block text-xs font-bold ${textSecondaryClass} mb-1`}>
+              Condition Name <span className="text-wf-red">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., isPremiumCustomer"
+              value={newConditionName}
+              onChange={(e) => setNewConditionName(e.target.value)}
+              className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+              autoFocus
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className={`block text-xs font-bold ${textSecondaryClass} mb-1`}>
+              Description (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Show content for premium customers"
+              value={newConditionDescription}
+              onChange={(e) => setNewConditionDescription(e.target.value)}
+              className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+            />
+          </div>
+
+          <div className={`mb-3 p-3 rounded-lg border-2 ${theme === 'dark' ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
+            <div className={`text-xs font-bold ${textSecondaryClass} mb-2`}>
+              Selected Content (will be shown if condition is TRUE):
+            </div>
+            <div className={`text-xs ${textClass} font-mono bg-white dark:bg-gray-700 p-2 rounded border`}>
+              {selection?.content || 'No content selected'}
+            </div>
+          </div>
+
+          <div className={`text-xs font-bold ${textSecondaryClass} mb-2`}>
+            Condition Rule
+          </div>
+
+          <div className="mb-3">
+            <label className={`block text-xs ${textSecondaryClass} mb-1`}>
+              Variable <span className="text-wf-red">*</span>
+            </label>
+            <select
+              value={newConditionVariable}
+              onChange={(e) => setNewConditionVariable(e.target.value)}
+              className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+            >
+              <option value="">Select a variable...</option>
+              {variables.map((v) => (
+                <option key={v.id} value={v.name}>
+                  {v.name} ({v.type})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className={`block text-xs ${textSecondaryClass} mb-1`}>
+              Operator <span className="text-wf-red">*</span>
+            </label>
+            <select
+              value={newConditionOperator}
+              onChange={(e) => setNewConditionOperator(e.target.value as ConditionOperator)}
+              className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+            >
+              <option value="==">Equals (==)</option>
+              <option value="!=">Not Equals (!=)</option>
+              <option value=">">Greater Than (&gt;)</option>
+              <option value="<">Less Than (&lt;)</option>
+              <option value=">=">Greater or Equal (&gt;=)</option>
+              <option value="<=">Less or Equal (&lt;=)</option>
+              <option value="contains">Contains</option>
+              <option value="notContains">Not Contains</option>
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className={`block text-xs ${textSecondaryClass} mb-1`}>
+              Value <span className="text-wf-red">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., premium or true"
+              value={newConditionValue}
+              onChange={(e) => setNewConditionValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateNewCondition()}
+              className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleCreateNewCondition}
+              disabled={!newConditionName.trim() || !newConditionVariable || !newConditionValue.trim()}
+              className="flex-1 bg-green-600 text-white px-3 py-2.5 rounded-lg text-sm font-bold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+            >
+              Create & Apply
+            </button>
+            <button
+              onClick={() => setMode('condition')}
+              className={`px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold ${hoverClass} ${textClass} transition-all`}
+            >
+              Back
             </button>
           </div>
         </div>
