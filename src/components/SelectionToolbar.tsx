@@ -45,6 +45,8 @@ export default function SelectionToolbar({
   const [newConditionVariable, setNewConditionVariable] = useState('');
   const [newConditionOperator, setNewConditionOperator] = useState<ConditionOperator>('==');
   const [newConditionValue, setNewConditionValue] = useState('');
+  const [newConditionHasElse, setNewConditionHasElse] = useState(false);
+  const [newConditionElseContent, setNewConditionElseContent] = useState('');
 
   if (!selection) return null;
 
@@ -83,7 +85,8 @@ export default function SelectionToolbar({
       ],
       logicOperator: 'AND',
       content: selection?.content || '',
-      hasElse: false,
+      hasElse: newConditionHasElse,
+      elseContent: newConditionHasElse ? newConditionElseContent : undefined,
     };
 
     onCreateAndWrapCondition(newCondition);
@@ -92,6 +95,8 @@ export default function SelectionToolbar({
     setNewConditionVariable('');
     setNewConditionOperator('==');
     setNewConditionValue('');
+    setNewConditionHasElse(false);
+    setNewConditionElseContent('');
     setMode('menu');
     onClose();
   };
@@ -384,10 +389,39 @@ export default function SelectionToolbar({
               placeholder="e.g., premium or true"
               value={newConditionValue}
               onChange={(e) => setNewConditionValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateNewCondition()}
+              onKeyDown={(e) => e.key === 'Enter' && !newConditionHasElse && handleCreateNewCondition()}
               className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
             />
           </div>
+
+          <div className="mb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newConditionHasElse}
+                onChange={(e) => setNewConditionHasElse(e.target.checked)}
+                className="w-4 h-4 text-wf-red border-gray-300 rounded focus:ring-wf-red"
+              />
+              <span className={`text-xs font-bold ${textSecondaryClass}`}>
+                Add ELSE Block (show different content when condition is FALSE)
+              </span>
+            </label>
+          </div>
+
+          {newConditionHasElse && (
+            <div className={`mb-3 p-3 rounded-lg border-2 ${theme === 'dark' ? 'bg-orange-900/20 border-orange-800' : 'bg-orange-50 border-orange-200'}`}>
+              <div className={`text-xs font-bold ${textSecondaryClass} mb-2`}>
+                ELSE Content (will be shown if condition is FALSE):
+              </div>
+              <textarea
+                placeholder="Enter content to show when condition is false..."
+                value={newConditionElseContent}
+                onChange={(e) => setNewConditionElseContent(e.target.value)}
+                rows={3}
+                className={`w-full px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-wf-red focus:border-transparent ${inputClass}`}
+              />
+            </div>
+          )}
 
           <div className="flex gap-2">
             <button

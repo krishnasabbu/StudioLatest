@@ -180,51 +180,110 @@ export async function generateFRDDocument(data: FRDDocumentData): Promise<void> 
       })
     );
   } else {
-    const conditionTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
+    const conditionRows: TableRow[] = [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: 'Condition Logic', bold: true })],
+              }),
+            ],
+            shading: { fill: 'D3D3D3' },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: 'Content to Display', bold: true })],
+              }),
+            ],
+            shading: { fill: 'D3D3D3' },
+          }),
+        ],
+      }),
+    ];
+
+    conditions.forEach((condition) => {
+      const clauseText = condition.clauses
+        .map((clause) => `${clause.variable} ${clause.operator} ${clause.value}`)
+        .join(` ${condition.logicOperator} `);
+
+      conditionRows.push(
         new TableRow({
           children: [
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: 'Condition', bold: true })],
+                  children: [
+                    new TextRun({ text: condition.name, bold: true }),
+                    new TextRun({ text: '\n', break: 1 }),
+                    new TextRun({ text: clauseText, italics: true }),
+                  ],
                 }),
               ],
-              shading: { fill: 'D3D3D3' },
+              shading: { fill: 'E8F5E9' },
             }),
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: 'Description', bold: true })],
+                  text: condition.content || 'No content specified',
                 }),
               ],
-              shading: { fill: 'D3D3D3' },
             }),
           ],
-        }),
-        ...conditions.map(
-          (condition) =>
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      text: condition.name,
-                    }),
-                  ],
-                }),
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      text: condition.description || '-',
-                    }),
-                  ],
-                }),
-              ],
-            })
-        ),
-      ],
+        })
+      );
+
+      if (condition.hasElse && condition.elseContent) {
+        const negatedOperator = (op: string) => {
+          const map: Record<string, string> = {
+            '==': '!=',
+            '!=': '==',
+            '>': '<=',
+            '<': '>=',
+            '>=': '<',
+            '<=': '>',
+            'contains': 'notContains',
+            'notContains': 'contains',
+          };
+          return map[op] || op;
+        };
+
+        const elseClauseText = condition.clauses
+          .map((clause) => `${clause.variable} ${negatedOperator(clause.operator)} ${clause.value}`)
+          .join(condition.logicOperator === 'AND' ? ' OR ' : ' AND ');
+
+        conditionRows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: `${condition.name} (ELSE)`, bold: true }),
+                      new TextRun({ text: '\n', break: 1 }),
+                      new TextRun({ text: elseClauseText, italics: true }),
+                    ],
+                  }),
+                ],
+                shading: { fill: 'FFEBEE' },
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    text: condition.elseContent,
+                  }),
+                ],
+              }),
+            ],
+          })
+        );
+      }
+    });
+
+    const conditionTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: conditionRows,
       borders: {
         top: { style: BorderStyle.SINGLE, size: 1 },
         bottom: { style: BorderStyle.SINGLE, size: 1 },
