@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown } from 'lucide-react';
+import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown, FileText } from 'lucide-react';
 import HTMLCanvasEditor from '../components/HTMLCanvasEditor';
 import SelectionToolbar from '../components/SelectionToolbar';
 import VariablePanel from '../components/VariablePanel';
 import ConditionPanel from '../components/ConditionPanel';
 import HyperlinkPanel from '../components/HyperlinkPanel';
 import CTAPanel from '../components/CTAPanel';
-import JsonPreviewPanel from '../components/JsonPreviewPanel';
+import FRDGeneratorPanel from '../components/FRDGeneratorPanel';
 import LiveEmailPreview from '../components/LiveEmailPreview';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
 import {
@@ -564,28 +564,23 @@ export default function EditorPage() {
           )}
         </div>
 
-        <div className="w-96 border-l bg-white flex flex-col">
-          <div className="h-1/2 border-b overflow-hidden flex flex-col">
-            <div className="border-b bg-gray-50 px-4 py-2">
-              <div className="flex items-center gap-2">
-                <Code2 size={16} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Preview Data (JSON)</span>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <JsonPreviewPanel data={previewData} onDataChange={setPreviewData} />
+        <div className="w-96 border-l bg-white dark:bg-gray-800 flex flex-col">
+          <div className="border-b bg-gray-50 dark:bg-gray-900 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <FileText size={16} className="text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">FRD Generator</span>
             </div>
           </div>
-          <div className="h-1/2 overflow-hidden flex flex-col">
-            <div className="border-b bg-gray-50 px-4 py-2">
-              <div className="flex items-center gap-2">
-                <Eye size={16} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Live Preview</span>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <LiveEmailPreview renderedHtml={renderedHtml} />
-            </div>
+          <div className="flex-1 overflow-hidden">
+            <FRDGeneratorPanel
+              templateName={templateName}
+              templateDescription={templateDescription}
+              templateHtml={templateHtml}
+              variables={variables}
+              conditions={conditions}
+              hyperlinks={hyperlinks}
+              ctaButtons={ctaButtons}
+            />
           </div>
         </div>
       </div>

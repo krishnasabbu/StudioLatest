@@ -1,0 +1,432 @@
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableRow,
+  TableCell,
+  TextRun,
+  AlignmentType,
+  WidthType,
+  BorderStyle,
+  HeadingLevel,
+} from 'docx';
+import { saveAs } from 'file-saver';
+import { Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
+
+interface FRDDocumentData {
+  templateName: string;
+  templateDescription: string;
+  templateHtml: string;
+  variables: Variable[];
+  conditions: ConditionDefinition[];
+  hyperlinks: Hyperlink[];
+  ctaButtons: CTAButton[];
+}
+
+export async function generateFRDDocument(data: FRDDocumentData): Promise<void> {
+  const {
+    templateName,
+    templateDescription,
+    templateHtml,
+    variables,
+    conditions,
+    hyperlinks,
+    ctaButtons,
+  } = data;
+
+  const sections: Paragraph[] = [];
+
+  sections.push(
+    new Paragraph({
+      text: 'Email Template FRD',
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+    })
+  );
+
+  sections.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Template Name: ',
+          bold: true,
+        }),
+        new TextRun({
+          text: templateName,
+        }),
+      ],
+      spacing: { after: 100 },
+    })
+  );
+
+  sections.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Description: ',
+          bold: true,
+        }),
+        new TextRun({
+          text: templateDescription || 'No description provided',
+        }),
+      ],
+      spacing: { after: 400 },
+    })
+  );
+
+  sections.push(
+    new Paragraph({
+      text: '1. Dynamic Variables',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 200 },
+    })
+  );
+
+  if (variables.length === 0) {
+    sections.push(
+      new Paragraph({
+        text: 'No variables detected in template',
+        italics: true,
+        spacing: { after: 300 },
+      })
+    );
+  } else {
+    const variableTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Variable', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Description', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+          ],
+        }),
+        ...variables.map(
+          (variable) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: variable.name,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: variable.description || '-',
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ],
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+      },
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [],
+        spacing: { after: 300 },
+      })
+    );
+    sections.push(variableTable as any);
+  }
+
+  sections.push(
+    new Paragraph({
+      text: '2. Conditions',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 },
+    })
+  );
+
+  if (conditions.length === 0) {
+    sections.push(
+      new Paragraph({
+        text: 'No conditions defined in template',
+        italics: true,
+        spacing: { after: 300 },
+      })
+    );
+  } else {
+    const conditionTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Condition', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Description', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+          ],
+        }),
+        ...conditions.map(
+          (condition) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: condition.name,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: condition.description || '-',
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ],
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+      },
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [],
+        spacing: { after: 300 },
+      })
+    );
+    sections.push(conditionTable as any);
+  }
+
+  sections.push(
+    new Paragraph({
+      text: '3. Hyperlinks',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 },
+    })
+  );
+
+  if (hyperlinks.length === 0) {
+    sections.push(
+      new Paragraph({
+        text: 'No hyperlinks added to template',
+        italics: true,
+        spacing: { after: 300 },
+      })
+    );
+  } else {
+    const hyperlinkTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Text', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'URL', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+          ],
+        }),
+        ...hyperlinks.map(
+          (link) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: link.text,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: link.url,
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ],
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+      },
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [],
+        spacing: { after: 300 },
+      })
+    );
+    sections.push(hyperlinkTable as any);
+  }
+
+  sections.push(
+    new Paragraph({
+      text: '4. CTA Buttons',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 },
+    })
+  );
+
+  if (ctaButtons.length === 0) {
+    sections.push(
+      new Paragraph({
+        text: 'No CTA buttons added to template',
+        italics: true,
+        spacing: { after: 300 },
+      })
+    );
+  } else {
+    const ctaTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'Text', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: 'URL', bold: true })],
+                }),
+              ],
+              shading: { fill: 'D3D3D3' },
+            }),
+          ],
+        }),
+        ...ctaButtons.map(
+          (button) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: button.text,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      text: button.url,
+                    }),
+                  ],
+                }),
+              ],
+            })
+        ),
+      ],
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+      },
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [],
+        spacing: { after: 300 },
+      })
+    );
+    sections.push(ctaTable as any);
+  }
+
+  sections.push(
+    new Paragraph({
+      text: '5. HTML Email Content',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 },
+    })
+  );
+
+  const htmlLines = (templateHtml || 'No content yet').split('\n');
+  htmlLines.forEach((line) => {
+    sections.push(
+      new Paragraph({
+        text: line,
+        style: 'Code',
+      })
+    );
+  });
+
+  const doc = new Document({
+    sections: [
+      {
+        children: sections,
+      },
+    ],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const fileName = `${templateName.replace(/\s+/g, '_')}_FRD.docx`;
+  saveAs(blob, fileName);
+}
