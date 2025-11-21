@@ -430,7 +430,7 @@ export default function EditorPage() {
               )}
             </button>
             {expandedSections.has('variables') && (
-              <div className="max-h-96 overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
                 <VariablePanel variables={variables} onVariablesChange={setVariables} />
               </div>
             )}
@@ -463,7 +463,7 @@ export default function EditorPage() {
               )}
             </button>
             {expandedSections.has('conditions') && (
-              <div className="max-h-96 overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
                 <ConditionPanel
                   conditions={conditions}
                   variables={variables}
@@ -500,7 +500,7 @@ export default function EditorPage() {
               )}
             </button>
             {expandedSections.has('hyperlinks') && (
-              <div className="max-h-96 overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
                 <HyperlinkPanel hyperlinks={hyperlinks} onHyperlinksChange={setHyperlinks} />
               </div>
             )}
@@ -533,7 +533,7 @@ export default function EditorPage() {
               )}
             </button>
             {expandedSections.has('cta') && (
-              <div className="max-h-96 overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
                 <CTAPanel ctaButtons={ctaButtons} onCTAButtonsChange={setCtaButtons} />
               </div>
             )}

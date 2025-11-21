@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Variable as VariableIcon, GitBranch, Repeat, Link2, Square } from 'lucide-react';
+import { X, Variable as VariableIcon, GitBranch, Repeat, Link2, Square, Plus } from 'lucide-react';
 import { SelectionInfo, ConditionDefinition } from '../types/template';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -30,6 +30,7 @@ export default function SelectionToolbar({
   const [mode, setMode] = useState<'menu' | 'variable' | 'condition' | 'loop' | 'link' | 'cta'>('menu');
   const [variableName, setVariableName] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
+  const [showCreateNewCondition, setShowCreateNewCondition] = useState(false);
   const [loopVar, setLoopVar] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState(selection?.content || '');
@@ -196,9 +197,10 @@ export default function SelectionToolbar({
               <X size={18} strokeWidth={2.5} />
             </button>
           </div>
+
           {conditions.length === 0 ? (
-            <div className={`text-sm ${textSecondaryClass} mb-3`}>
-              No conditions created yet. Create conditions in the left panel first.
+            <div className={`text-sm ${textSecondaryClass} mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg`}>
+              No conditions created yet.
             </div>
           ) : (
             <>
@@ -220,6 +222,11 @@ export default function SelectionToolbar({
               </select>
             </>
           )}
+
+          <div className={`text-xs ${textSecondaryClass} mb-2 text-center`}>
+            Need a new condition? Create one in the Conditions panel on the left.
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={handleWrapCondition}
