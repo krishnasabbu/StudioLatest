@@ -28,6 +28,7 @@ export default function FRDGeneratorPanel({
   const handleDownloadFRD = async () => {
     setIsGenerating(true);
     try {
+      console.log('FRD Data - Conditions:', conditions);
       templateHtml = htmlToFormattedText(templateHtml);
       await generateFRDDocument({
         templateName,
@@ -167,24 +168,72 @@ export default function FRDGeneratorPanel({
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
                       <th className="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        Condition Name
+                        Condition Logic
                       </th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        Description
+                        Content to Display
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {conditions.map((condition) => (
-                      <tr key={condition.id} className="hover:bg-gray-50 dark:hover:bg-gray-900">
-                        <td className="px-4 py-2 font-mono text-green-600 dark:text-green-400">
-                          {condition.name}
-                        </td>
-                        <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
-                          {condition.description || '-'}
-                        </td>
-                      </tr>
-                    ))}
+                    {conditions.map((condition) => {
+                      const clauseText = condition.clauses
+                        .map((clause) => `${clause.variable} ${clause.operator} ${clause.value}`)
+                        .join(` ${condition.logicOperator} `);
+
+                      const negatedOperator = (op: string) => {
+                        const map: Record<string, string> = {
+                          '==': '!=',
+                          '!=': '==',
+                          '>': '<=',
+                          '<': '>=',
+                          '>=': '<',
+                          '<=': '>',
+                          'contains': 'notContains',
+                          'notContains': 'contains',
+                        };
+                        return map[op] || op;
+                      };
+
+                      const elseClauseText = condition.hasElse
+                        ? condition.clauses
+                            .map((clause) => `${clause.variable} ${negatedOperator(clause.operator)} ${clause.value}`)
+                            .join(condition.logicOperator === 'AND' ? ' OR ' : ' AND ')
+                        : '';
+
+                      return (
+                        <>
+                          <tr key={`${condition.id}-true`} className="hover:bg-gray-50 dark:hover:bg-gray-900 bg-green-50 dark:bg-green-900/20">
+                            <td className="px-4 py-2">
+                              <div className="font-bold text-green-700 dark:text-green-400">
+                                {condition.name}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
+                                {clauseText}
+                              </div>
+                            </td>
+                            <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                              {condition.content || 'No content specified'}
+                            </td>
+                          </tr>
+                          {condition.hasElse && condition.elseContent && (
+                            <tr key={`${condition.id}-else`} className="hover:bg-gray-50 dark:hover:bg-gray-900 bg-red-50 dark:bg-red-900/20">
+                              <td className="px-4 py-2">
+                                <div className="font-bold text-red-700 dark:text-red-400">
+                                  {condition.name} (ELSE)
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
+                                  {elseClauseText}
+                                </div>
+                              </td>
+                              <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                                {condition.elseContent}
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

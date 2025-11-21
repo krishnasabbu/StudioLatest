@@ -41,6 +41,9 @@ export async function generateFRDDocument(data: FRDDocumentData): Promise<void> 
     ctaButtons,
   } = data;
 
+  console.log('FRD Generator - Received conditions:', conditions);
+  console.log('FRD Generator - Conditions length:', conditions.length);
+
   const sections: Paragraph[] = [];
 
   sections.push(
@@ -170,6 +173,9 @@ export async function generateFRDDocument(data: FRDDocumentData): Promise<void> 
       spacing: { before: 400, after: 200 },
     })
   );
+
+  console.log('About to check conditions.length:', conditions.length);
+  console.log('Conditions array:', JSON.stringify(conditions, null, 2));
 
   if (conditions.length === 0) {
     sections.push(
