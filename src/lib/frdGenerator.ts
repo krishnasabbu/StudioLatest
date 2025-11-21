@@ -24,6 +24,12 @@ interface FRDDocumentData {
   ctaButtons: CTAButton[];
 }
 
+function stripHtmlTags(html: string): string {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || '';
+}
+
 export async function generateFRDDocument(data: FRDDocumentData): Promise<void> {
   const {
     templateName,
@@ -402,21 +408,33 @@ export async function generateFRDDocument(data: FRDDocumentData): Promise<void> 
 
   sections.push(
     new Paragraph({
-      text: '5. HTML Email Content',
+      text: '5. Email Content',
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 400, after: 200 },
     })
   );
 
-  const htmlLines = (templateHtml || 'No content yet').split('\n');
-  htmlLines.forEach((line) => {
+  const plainTextContent = stripHtmlTags(templateHtml || 'No content yet');
+  const contentLines = plainTextContent.split('\n').filter(line => line.trim() !== '');
+
+  if (contentLines.length === 0) {
     sections.push(
       new Paragraph({
-        text: line,
-        style: 'Code',
+        text: 'No content yet',
+        italics: true,
+        spacing: { after: 300 },
       })
     );
-  });
+  } else {
+    contentLines.forEach((line) => {
+      sections.push(
+        new Paragraph({
+          text: line.trim(),
+          spacing: { after: 100 },
+        })
+      );
+    });
+  }
 
   const doc = new Document({
     sections: [
