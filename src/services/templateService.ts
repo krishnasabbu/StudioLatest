@@ -1,76 +1,60 @@
-import { supabase } from '../lib/supabase';
-import { EmailTemplate, Variable } from '../types/template';
+import { EmailTemplate } from '../types/template';
+import {
+  getMockTemplates,
+  getMockTemplate,
+  createMockTemplate,
+  updateMockTemplate,
+  deleteMockTemplate,
+} from '../lib/mockData';
 
 export const templateService = {
   async getAllTemplates(): Promise<EmailTemplate[]> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(getMockTemplates());
+      }, 100);
+    });
   },
 
   async getTemplate(id: string): Promise<EmailTemplate | null> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(getMockTemplate(id));
+      }, 100);
+    });
   },
 
   async createTemplate(template: Partial<EmailTemplate>): Promise<EmailTemplate> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .insert({
-        name: template.name || 'Untitled Template',
-        description: template.description || '',
-        original_html: template.original_html || '',
-        template_html: template.template_html || template.original_html || '',
-        variables: template.variables || [],
-        conditions: template.conditions || [],
-        hyperlinks: template.hyperlinks || [],
-        cta_buttons: template.cta_buttons || [],
-        preview_data: template.preview_data || {},
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(createMockTemplate(template));
+      }, 100);
+    });
   },
 
   async updateTemplate(id: string, updates: Partial<EmailTemplate>): Promise<EmailTemplate> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .update({
-        name: updates.name,
-        description: updates.description,
-        template_html: updates.template_html,
-        variables: updates.variables,
-        conditions: updates.conditions,
-        hyperlinks: updates.hyperlinks,
-        cta_buttons: updates.cta_buttons,
-        preview_data: updates.preview_data,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const result = updateMockTemplate(id, updates);
+        if (result) {
+          resolve(result);
+        } else {
+          reject(new Error('Template not found'));
+        }
+      }, 100);
+    });
   },
 
   async deleteTemplate(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('email_templates')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const success = deleteMockTemplate(id);
+        if (success) {
+          resolve();
+        } else {
+          reject(new Error('Template not found'));
+        }
+      }, 100);
+    });
   },
 };
