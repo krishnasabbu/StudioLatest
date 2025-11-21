@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, CheckCircle, XCircle } from 'lucide-react';
 import { Variable, ConditionDefinition, Hyperlink, CTAButton } from '../../types/template';
 import { useTheme } from '../../contexts/ThemeContext';
 import { applyFormatters, evaluateConditions, processTemplate } from '../../lib/previewEngine';
@@ -26,6 +26,7 @@ export default function LivePreviewModal({
   const { theme } = useTheme();
   const [variableValues, setVariableValues] = useState<Record<string, any>>({});
   const [previewHtml, setPreviewHtml] = useState('');
+  const [conditionResults, setConditionResults] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const initialValues: Record<string, any> = {};
@@ -51,6 +52,9 @@ export default function LivePreviewModal({
   }, [variables]);
 
   useEffect(() => {
+    const results = evaluateConditions(conditions, variableValues);
+    setConditionResults(results);
+
     const processed = processTemplate(
       templateHtml,
       variableValues,
@@ -150,16 +154,38 @@ export default function LivePreviewModal({
                     Conditions
                   </h3>
                   <div className="space-y-2">
-                    {conditions.map((condition) => (
-                      <div
-                        key={condition.id}
-                        className={`p-2 rounded text-xs ${
-                          theme === 'dark' ? 'bg-gray-700' : 'bg-white'
-                        }`}
-                      >
-                        <code className="font-mono">{condition.name}</code>
-                      </div>
-                    ))}
+                    {conditions.map((condition) => {
+                      const isTrue = conditionResults[condition.name];
+                      return (
+                        <div
+                          key={condition.id}
+                          className={`p-2 rounded text-xs border-2 ${
+                            isTrue
+                              ? 'bg-green-50 border-green-200'
+                              : 'bg-red-50 border-red-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <code className="font-mono font-medium">{condition.name}</code>
+                            {isTrue ? (
+                              <CheckCircle size={14} className="text-green-600" />
+                            ) : (
+                              <XCircle size={14} className="text-red-600" />
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {condition.clauses.map((clause, idx) => (
+                              <div key={idx}>
+                                {clause.variable} {clause.operator} {clause.value}
+                              </div>
+                            ))}
+                          </div>
+                          <div className={`text-xs font-bold mt-1 ${isTrue ? 'text-green-700' : 'text-red-700'}`}>
+                            {isTrue ? 'TRUE - Content Shown' : 'FALSE - Content Hidden'}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

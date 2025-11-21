@@ -122,25 +122,33 @@ export function processTemplate(
 ): string {
   let processed = templateHtml;
 
+  const conditionResults = evaluateConditions(conditions, values);
+
+  conditions.forEach((condition) => {
+    const isTrue = conditionResults[condition.name];
+    const placeholder = `{{%${condition.name}%}}`;
+    const closePlaceholder = `{{/%${condition.name}%}}`;
+
+    const regex = new RegExp(
+      `${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([\\s\\S]*?)${closePlaceholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+      'g'
+    );
+
+    processed = processed.replace(regex, (match, content) => {
+      if (isTrue) {
+        return content || '';
+      } else if (condition.hasElse && condition.elseContent) {
+        return condition.elseContent;
+      }
+      return '';
+    });
+  });
+
   const formattedValues = applyFormatters(values, variables);
 
   Object.keys(formattedValues).forEach((key) => {
     const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
     processed = processed.replace(regex, formattedValues[key]);
-  });
-
-  const conditionResults = evaluateConditions(conditions, values);
-
-  conditions.forEach((condition) => {
-    const isTrue = conditionResults[condition.name];
-    const ifRegex = new RegExp(
-      `{{#if\\s+${condition.name}\\s*}}([\\s\\S]*?)(?:{{else}}([\\s\\S]*?))?{{/if}}`,
-      'g'
-    );
-
-    processed = processed.replace(ifRegex, (match, ifContent, elseContent) => {
-      return isTrue ? (ifContent || '') : (elseContent || '');
-    });
   });
 
   hyperlinks.forEach((link) => {
