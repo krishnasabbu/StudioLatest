@@ -129,14 +129,28 @@ export function processTemplate(
     const placeholder = `{{%${condition.name}%}}`;
     const closePlaceholder = `{{/%${condition.name}%}}`;
 
-    const regex = new RegExp(
+    const wrappedRegex = new RegExp(
       `${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([\\s\\S]*?)${closePlaceholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
       'g'
     );
 
-    processed = processed.replace(regex, (match, content) => {
+    processed = processed.replace(wrappedRegex, (match, content) => {
       if (isTrue) {
-        return content || '';
+        return content || condition.content || '';
+      } else if (condition.hasElse && condition.elseContent) {
+        return condition.elseContent;
+      }
+      return '';
+    });
+
+    const singlePlaceholderRegex = new RegExp(
+      `${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+      'g'
+    );
+
+    processed = processed.replace(singlePlaceholderRegex, () => {
+      if (isTrue) {
+        return condition.content || '';
       } else if (condition.hasElse && condition.elseContent) {
         return condition.elseContent;
       }

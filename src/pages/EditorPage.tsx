@@ -117,19 +117,21 @@ export default function EditorPage() {
   };
 
   const handleWrapCondition = (conditionName: string) => {
-    if (!selection?.element) return;
+    if (!selection?.range) return;
 
-    const element = selection.element;
-    const wrappedHtml = wrapWithNamedCondition(element.outerHTML, conditionName);
+    const placeholder = `{{%${conditionName}%}}`;
+    const range = selection.range;
 
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = wrappedHtml;
+    range.deleteContents();
+    const textNode = document.createTextNode(placeholder);
+    range.insertNode(textNode);
 
-    element.parentNode?.replaceChild(tempDiv.firstChild!, element);
-
-    const parent = tempDiv.closest('[contenteditable]');
+    const parent = range.commonAncestorContainer.parentElement;
     if (parent) {
-      setTemplateHtml(parent.innerHTML);
+      const editor = parent.closest('[contenteditable]');
+      if (editor) {
+        setTemplateHtml(editor.innerHTML);
+      }
     }
 
     setSelection(null);
@@ -138,19 +140,21 @@ export default function EditorPage() {
   const handleCreateAndWrapCondition = (condition: ConditionDefinition) => {
     setConditions((prev) => [...prev, condition]);
 
-    if (!selection?.element) return;
+    if (!selection?.range) return;
 
-    const element = selection.element;
-    const wrappedHtml = wrapWithNamedCondition(element.outerHTML, condition.name);
+    const placeholder = `{{%${condition.name}%}}`;
+    const range = selection.range;
 
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = wrappedHtml;
+    range.deleteContents();
+    const textNode = document.createTextNode(placeholder);
+    range.insertNode(textNode);
 
-    element.parentNode?.replaceChild(tempDiv.firstChild!, element);
-
-    const parent = tempDiv.closest('[contenteditable]');
+    const parent = range.commonAncestorContainer.parentElement;
     if (parent) {
-      setTemplateHtml(parent.innerHTML);
+      const editor = parent.closest('[contenteditable]');
+      if (editor) {
+        setTemplateHtml(editor.innerHTML);
+      }
     }
 
     setSelection(null);
