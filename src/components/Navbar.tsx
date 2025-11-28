@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
-import { logout } from '../../store/slices/authSlice';
-import { toggleTheme } from '../../store/slices/themeSlice';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { logout } from '../store/slices/authSlice';
+import { toggleTheme } from '../store/slices/themeSlice';
 import { Moon, Sun, LogOut, User, ArrowLeft } from 'lucide-react';
 import Button from '../ui/Button';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { usePermissions } from '../../hooks/useRedux';
+import { usePermissions } from '../hooks/useRedux';
 import { 
   Home, 
   Plus, 
