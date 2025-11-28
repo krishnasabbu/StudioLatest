@@ -6,9 +6,20 @@ import { useNavigate } from './useNavigate';
 
 export default function TemplateListPage() {
   const navigate = useNavigate();
+
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
+
+  // Sync theme class
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     loadTemplates();
@@ -40,7 +51,7 @@ export default function TemplateListPage() {
     }
   };
 
-  const handleEdit = async (template: EmailTemplate) => {
+  const handleEdit = (template: EmailTemplate) => {
     navigate('editor', {
       html: template.template_html,
       name: template.name,
@@ -59,46 +70,77 @@ export default function TemplateListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="bg-wf-red dark:bg-gray-800 py-8 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Email Template Manager</h1>
-              <p className="text-red-100 dark:text-gray-300 text-lg">
-                Create and manage dynamic email templates with variables and conditions
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('import')}
-                className="flex items-center gap-2 px-6 py-3 bg-white text-wf-red rounded-lg hover:bg-gray-100 font-bold shadow-xl hover:shadow-2xl transition-all text-lg"
-              >
-                <Plus size={24} strokeWidth={3} />
-                New Template
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
+
+      {/* ===================== TOP NAV BAR (Option A) ===================== */}
+      <header className="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+          {/* Left: Title */}
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Email Template Manager
+          </h1>
+
+          {/* Right: Nav + Theme Toggle */}
+          <div className="flex items-center gap-4">
+
+            {/* Templates */}
+            <button
+              onClick={() => navigate('list')}
+              className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
+            >
+              Templates
+            </button>
+
+            {/* Import Template */}
+            <button
+              onClick={() => navigate('import')}
+              className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
+            >
+              Import Template
+            </button>
+
+            {/* Editor */}
+            <button
+              onClick={() => navigate('editor')}
+              className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
+            >
+              Editor
+            </button>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* ===================== PAGE CONTENT ===================== */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-wf-red border-t-transparent"></div>
           </div>
         ) : templates.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-16 text-center">
-            <FileCode size={80} className="mx-auto text-gray-300 dark:text-gray-600 mb-6" strokeWidth={1.5} />
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-3">No Templates Yet</h2>
+            <FileCode size={80} className="mx-auto text-gray-300 dark:text-gray-600 mb-6" />
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-3">
+              No Templates Yet
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg">
               Create your first email template to get started
             </p>
+
             <button
               onClick={() => navigate('import')}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold text-lg shadow-lg"
             >
-              <Plus size={24} strokeWidth={3} />
+              <Plus size={24} />
               Create Template
             </button>
           </div>
@@ -110,20 +152,19 @@ export default function TemplateListPage() {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all overflow-hidden border-2 border-transparent hover:border-wf-red/20"
               >
                 <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        {template.name}
-                      </h3>
-                      {template.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                          {template.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-6">
+                  {/* Title + Description */}
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {template.name}
+                  </h3>
+                  {template.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                      {template.description}
+                    </p>
+                  )}
+
+                  {/* Meta */}
+                  <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 my-6">
                     <div className="flex items-center gap-1.5">
                       <Calendar size={16} />
                       {formatDate(template.created_at)}
@@ -134,30 +175,33 @@ export default function TemplateListPage() {
                     </div>
                   </div>
 
+                  {/* Buttons */}
                   <div className="flex gap-3">
                     <button
                       onClick={() => handleEdit(template)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold transition-all shadow-md hover:shadow-lg"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold"
                     >
-                      <Edit size={18} strokeWidth={2.5} />
+                      <Edit size={18} />
                       Edit
                     </button>
+
                     <button
                       onClick={() => handleDelete(template.id)}
                       disabled={deleting === template.id}
-                      className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 font-bold disabled:opacity-50 transition-all shadow-sm"
+                      className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
                     >
                       {deleting === template.id ? (
                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-700 dark:border-gray-300 border-t-transparent"></div>
                       ) : (
-                        <Trash2 size={18} strokeWidth={2.5} />
+                        <Trash2 size={18} />
                       )}
                     </button>
                   </div>
                 </div>
 
+                {/* Footer */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Last updated: {formatDate(template.updated_at)}
                   </p>
                 </div>
