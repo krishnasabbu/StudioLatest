@@ -82,9 +82,7 @@ export default function HTMLCanvasEditor({
   };
 
   return (
-    <div className={`h-full flex flex-col transition-colors ${
-      theme === 'dark' ? 'bg-gray-900' : 'bg-white'
-    }`}>
+    <div className="h-full flex flex-col transition-colors bg-white">
       <div className="flex-1 overflow-auto p-6">
         <div
           ref={editorRef}
@@ -93,11 +91,7 @@ export default function HTMLCanvasEditor({
           onMouseUp={handleMouseUp}
           onKeyUp={handleSelection}
           onBlur={handleBlur}
-          className={`min-h-full outline-none border-2 rounded-lg p-4 transition-colors ${
-            theme === 'dark'
-              ? 'bg-gray-800 border-gray-700 text-white'
-              : 'bg-white border-gray-200 text-gray-900'
-          }`}
+          className="min-h-full outline-none border-2 rounded-lg p-4 transition-colors bg-white border-gray-200 text-gray-900"
           style={{
             wordWrap: 'break-word',
             overflowWrap: 'break-word'

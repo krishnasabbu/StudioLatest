@@ -3,14 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppSelector } from './hooks/useRedux';
-import ProtectedRoute from './components/ProtectedRoute';
-import Layout from './components/layout/Layout';
 import TemplateListPage from './pages/TemplateListPage';
 import ImportPage from './pages/ImportPage';
 import EditorPage from './pages/EditorPage';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated } = useAppSelector(state => state.auth);
   const { isDarkMode } = useAppSelector(state => state.theme);
 
   useEffect(() => {
@@ -25,42 +22,9 @@ const AppContent: React.FC = () => {
     <BrowserRouter>
       <div className={`${isDarkMode ? 'dark' : ''}`}>
         <Routes>
-          <Route 
-            path="/login" 
-            element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <TemplateListPage />
-            } 
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <TemplateListPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/import"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <ImportPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/editor"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <EditorPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<TemplateListPage />} />
+          <Route path="/import" element={<ImportPage />} />
+          <Route path="/editor" element={<EditorPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>

@@ -81,17 +81,11 @@ export default function RichTextToolbar({
       return `${base} bg-wf-red text-white shadow-md`;
     }
 
-    return theme === 'dark'
-      ? `${base} text-gray-300 hover:bg-gray-700 hover:text-white`
-      : `${base} text-gray-700 hover:bg-gray-100 hover:text-wf-red`;
+    return `${base} text-gray-700 hover:bg-gray-100 hover:text-wf-red`;
   };
 
   return (
-    <div className={`sticky top-0 z-10 border-b ${
-      theme === 'dark'
-        ? 'bg-gray-800 border-gray-700'
-        : 'bg-white border-gray-200'
-    } shadow-sm`}>
+    <div className="sticky top-0 z-10 border-b bg-white border-gray-200 shadow-sm">
       <div className="px-4 py-2 flex flex-wrap items-center gap-1">
 
         {/* Text Formatting Group */}
@@ -137,11 +131,7 @@ export default function RichTextToolbar({
         <div className="flex items-center gap-1 pr-2 border-r border-gray-300 dark:border-gray-600">
           <select
             onChange={(e) => executeCommand('formatBlock', e.target.value)}
-            className={`px-2 py-1.5 rounded-md text-sm font-medium border-2 transition-all ${
-              theme === 'dark'
-                ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-wf-red'
-            } focus:outline-none focus:ring-2 focus:ring-wf-red`}
+            className="px-2 py-1.5 rounded-md text-sm font-medium border-2 transition-all bg-white border-gray-300 text-gray-700 hover:border-wf-red focus:outline-none focus:ring-2 focus:ring-wf-red"
             defaultValue="p"
             title="Paragraph style"
           >
@@ -156,11 +146,7 @@ export default function RichTextToolbar({
 
           <select
             onChange={(e) => executeCommand('fontSize', e.target.value)}
-            className={`px-2 py-1.5 rounded-md text-sm font-medium border-2 transition-all ${
-              theme === 'dark'
-                ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-wf-red'
-            } focus:outline-none focus:ring-2 focus:ring-wf-red`}
+            className="px-2 py-1.5 rounded-md text-sm font-medium border-2 transition-all bg-white border-gray-300 text-gray-700 hover:border-wf-red focus:outline-none focus:ring-2 focus:ring-wf-red"
             defaultValue="3"
             title="Font size"
           >
