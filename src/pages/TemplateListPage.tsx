@@ -110,6 +110,14 @@ export default function TemplateListPage() {
               Editor
             </button>
 
+            {/* Legacy Alerts */}
+            <button
+              onClick={() => navigate('/legacy-alerts')}
+              className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
+            >
+              Legacy Alerts
+            </button>
+
             {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

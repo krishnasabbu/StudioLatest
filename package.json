@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5",
     "@reduxjs/toolkit": "^2.11.0",
+    "@textea/json-viewer": "^4.0.1",
     "docx": "^9.5.1",
     "docx-wasm": "^0.4.19-rc5",
     "file-saver": "^2.0.5",
@@ -19,8 +23,11 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.9.6"
+    "react-router-dom": "^7.9.6",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
