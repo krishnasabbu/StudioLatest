@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { toggleTheme as toggleThemeAction } from '../store/themeSlice';
+import { toggleTheme as toggleThemeAction } from '../store/slices/themeSlice';
 
 type Theme = 'light' | 'dark';
 
