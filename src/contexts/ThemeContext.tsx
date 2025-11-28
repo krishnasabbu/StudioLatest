@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { toggleTheme as toggleThemeAction } from '../store/themeSlice';
 
 type Theme = 'light' | 'dark';
 
@@ -10,22 +12,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved as Theme) || 'light';
-  });
+  const dispatch = useAppDispatch();
+  const { isDarkMode } = useAppSelector(state => state.theme);
 
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
+  const theme: Theme = isDarkMode ? 'dark' : 'light';
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    dispatch(toggleThemeAction());
   };
 
   return (
