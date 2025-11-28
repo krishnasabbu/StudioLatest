@@ -3,11 +3,9 @@ import { Plus, Edit, Trash2, FileCode, Calendar, Moon, Sun } from 'lucide-react'
 import { EmailTemplate } from '../types/template';
 import { templateService } from '../services/templateService';
 import { useNavigate } from './useNavigate';
-import { useTheme } from '../contexts/ThemeContext';
 
 export default function TemplateListPage() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -72,13 +70,6 @@ export default function TemplateListPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors backdrop-blur-sm"
-                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                {theme === 'light' ? <Moon size={24} /> : <Sun size={24} />}
-              </button>
               <button
                 onClick={() => navigate('import')}
                 className="flex items-center gap-2 px-6 py-3 bg-white text-wf-red rounded-lg hover:bg-gray-100 font-bold shadow-xl hover:shadow-2xl transition-all text-lg"
