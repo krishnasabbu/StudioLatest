@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Upload, FileCode, ArrowRight, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
 export default function ImportPage() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [htmlContent, setHtmlContent] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [description, setDescription] = useState('');
@@ -48,13 +46,6 @@ export default function ImportPage() {
                 Upload or paste your HTML email template to get started
               </p>
             </div>
-            <button
-              onClick={toggleTheme}
-              className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors backdrop-blur-sm ml-4"
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? <Moon size={24} /> : <Sun size={24} />}
-            </button>
           </div>
         </div>
       </div>
