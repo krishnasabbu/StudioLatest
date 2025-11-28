@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FileCode, Calendar, Moon, Sun } from 'lucide-react';
 import { EmailTemplate } from '../types/template';
 import { templateService } from '../services/templateService';
-import { useNavigate } from './useNavigate';
+import { useNavigate } from 'react-router-dom';
 
 export default function TemplateListPage() {
   const navigate = useNavigate();
@@ -52,11 +52,13 @@ export default function TemplateListPage() {
   };
 
   const handleEdit = (template: EmailTemplate) => {
-    navigate('editor', {
-      html: template.template_html,
-      name: template.name,
-      description: template.description,
-      templateId: template.id,
+    navigate('/editor', {
+      state: {
+        html: template.template_html,
+        name: template.name,
+        description: template.description,
+        templateId: template.id,
+      }
     });
   };
 
@@ -86,7 +88,7 @@ export default function TemplateListPage() {
 
             {/* Templates */}
             <button
-              onClick={() => navigate('list')}
+              onClick={() => navigate('/dashboard')}
               className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
             >
               Templates
@@ -94,7 +96,7 @@ export default function TemplateListPage() {
 
             {/* Import Template */}
             <button
-              onClick={() => navigate('import')}
+              onClick={() => navigate('/import')}
               className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
             >
               Import Template
@@ -102,7 +104,7 @@ export default function TemplateListPage() {
 
             {/* Editor */}
             <button
-              onClick={() => navigate('editor')}
+              onClick={() => navigate('/editor')}
               className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-red transition"
             >
               Editor
@@ -137,7 +139,7 @@ export default function TemplateListPage() {
             </p>
 
             <button
-              onClick={() => navigate('import')}
+              onClick={() => navigate('/import')}
               className="inline-flex items-center gap-3 px-8 py-4 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold text-lg shadow-lg"
             >
               <Plus size={24} />

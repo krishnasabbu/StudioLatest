@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Upload, FileCode, ArrowRight, Moon, Sun } from 'lucide-react';
-import { useNavigate } from './useNavigate';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function ImportPage() {
@@ -27,10 +27,12 @@ export default function ImportPage() {
 
   const handleProceed = () => {
     if (htmlContent.trim()) {
-      navigate('editor', {
-        html: htmlContent,
-        name: templateName || 'Untitled Template',
-        description: description,
+      navigate('/editor', {
+        state: {
+          html: htmlContent,
+          name: templateName || 'Untitled Template',
+          description: description,
+        }
       });
     }
   };
@@ -132,7 +134,7 @@ export default function ImportPage() {
 
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate('list')}
+              onClick={() => navigate('/dashboard')}
               className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 font-bold transition-colors shadow-sm"
             >
               Back to Templates

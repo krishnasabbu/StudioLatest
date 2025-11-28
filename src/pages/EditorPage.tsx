@@ -18,12 +18,13 @@ import {
   extractVariables,
 } from '../lib/templateEngine';
 import { templateService } from '../services/templateService';
-import { useNavigate, getNavigationState } from './useNavigate';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function EditorPage() {
   const navigate = useNavigate();
-  const navState = getNavigationState();
+  const location = useLocation();
+  const navState = (location.state as any) || {};
   const { theme, toggleTheme } = useTheme();
 
   const [templateName, setTemplateName] = useState(navState.name || 'Untitled Template');
@@ -339,7 +340,7 @@ export default function EditorPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <button
-                onClick={() => navigate('list')}
+                onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-wf-red hover:bg-red-50 rounded-lg transition-colors"
               >
                 <ArrowLeft size={18} />
