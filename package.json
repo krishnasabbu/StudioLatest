@@ -15,7 +15,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.5",
     "@reduxjs/toolkit": "^2.11.0",
-    "@textea/json-viewer": "^4.0.1",
     "docx": "^9.5.1",
     "docx-wasm": "^0.4.19-rc5",
     "file-saver": "^2.0.5",

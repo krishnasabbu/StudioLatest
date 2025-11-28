@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronRight, FileCode } from 'lucide-react';
-import { JsonViewer } from '@textea/json-viewer';
+import JsonViewer from '../components/JsonViewer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLegacyAlertStore } from '../store/legacyAlertStore';
@@ -90,10 +90,7 @@ export default function LegacyAlertDetails() {
             <h2 className="text-lg font-bold text-gray-900">Alert JSON</h2>
           </div>
           <div className="p-4">
-            <JsonViewer
-              value={alert}
-              defaultInspectDepth={1}
-            />
+            <JsonViewer data={alert} />
           </div>
         </div>
 
@@ -185,10 +182,7 @@ export default function LegacyAlertDetails() {
                         <div className="text-xs font-bold text-gray-600 mb-1">{key}</div>
                         <div className="text-sm text-gray-900 font-mono">
                           {typeof value === 'object' ? (
-                            <JsonViewer
-                              value={value}
-                              defaultInspectDepth={0}
-                            />
+                            <JsonViewer data={value} />
                           ) : (
                             String(value)
                           )}
