@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { X, Variable as VariableIcon, GitBranch, Repeat, Link2, Square, Plus } from 'lucide-react';
 import { SelectionInfo, ConditionDefinition, Variable as VariableType, ConditionOperator, LogicOperator } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface SelectionToolbarProps {
   selection: SelectionInfo | null;
@@ -30,7 +29,9 @@ export default function SelectionToolbar({
   onInsertCTA,
   onClose
 }: SelectionToolbarProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
   const [mode, setMode] = useState<'menu' | 'variable' | 'condition' | 'newCondition' | 'loop' | 'link' | 'cta'>('menu');
   const [variableName, setVariableName] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');

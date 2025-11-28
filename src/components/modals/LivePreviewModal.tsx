@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, CheckCircle, XCircle } from 'lucide-react';
 import { Variable, ConditionDefinition, Hyperlink, CTAButton } from '../../types/template';
-import { useTheme } from '../../contexts/ThemeContext';
 import { applyFormatters, evaluateConditions, processTemplate } from '../../lib/previewEngine';
 
 interface LivePreviewModalProps {
@@ -23,7 +22,9 @@ export default function LivePreviewModal({
   hyperlinks,
   ctaButtons,
 }: LivePreviewModalProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
   const [variableValues, setVariableValues] = useState<Record<string, any>>({});
   const [previewHtml, setPreviewHtml] = useState('');
   const [conditionResults, setConditionResults] = useState<Record<string, boolean>>({});

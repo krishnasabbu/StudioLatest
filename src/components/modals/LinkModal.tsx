@@ -22,7 +22,6 @@
 
 import { useState, useEffect } from 'react';
 import { X, Link2, ExternalLink } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
 
 interface LinkModalProps {
   isOpen: boolean;
@@ -42,7 +41,9 @@ export default function LinkModal({
   onInsert,
   initialData,
 }: LinkModalProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [target, setTarget] = useState('_blank');

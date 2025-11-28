@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit2, Save, X, Info, GitBranch, PlusCircle } from 'lucide-react';
 import { ConditionDefinition, ConditionClause, Variable, LogicOperator, ConditionOperator } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface ConditionPanelProps {
   conditions: ConditionDefinition[];
@@ -10,7 +9,6 @@ interface ConditionPanelProps {
 }
 
 export default function ConditionPanel({ conditions, variables, onConditionsChange }: ConditionPanelProps) {
-  const { theme } = useTheme();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ConditionDefinition | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -23,6 +21,10 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
     hasElse: false,
     elseContent: '',
   });
+
+  const [theme, setTheme] = useState(
+      localStorage.getItem('theme') || 'light'
+    );
 
   const operatorLabels: Record<ConditionOperator, string> = {
     '==': 'equals',

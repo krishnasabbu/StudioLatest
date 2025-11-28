@@ -1,6 +1,6 @@
 import { Trash2, ExternalLink, Plus } from 'lucide-react';
 import { Hyperlink } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
+import { useState } from 'react';
 
 interface HyperlinkPanelProps {
   hyperlinks: Hyperlink[];
@@ -8,7 +8,9 @@ interface HyperlinkPanelProps {
 }
 
 export default function HyperlinkPanel({ hyperlinks, onHyperlinksChange }: HyperlinkPanelProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
 
   const handleDelete = (id: string) => {
     if (confirm('Delete this hyperlink?')) {

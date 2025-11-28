@@ -1,6 +1,5 @@
 import { Trash2, Square } from 'lucide-react';
 import { CTAButton } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface CTAPanelProps {
   ctaButtons: CTAButton[];
@@ -8,7 +7,9 @@ interface CTAPanelProps {
 }
 
 export default function CTAPanel({ ctaButtons, onCTAButtonsChange }: CTAPanelProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
 
   const handleDelete = (id: string) => {
     if (confirm('Delete this CTA button?')) {

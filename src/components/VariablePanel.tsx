@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import { Variable, VariableType, FormatterType } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface VariablePanelProps {
   variables: Variable[];
@@ -9,7 +8,9 @@ interface VariablePanelProps {
 }
 
 export default function VariablePanel({ variables, onVariablesChange }: VariablePanelProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Variable>>({});
   const [showAddForm, setShowAddForm] = useState(false);

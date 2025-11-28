@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { SelectionInfo } from '../types/template';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface HTMLCanvasEditorProps {
   html: string;
@@ -14,7 +13,9 @@ export default function HTMLCanvasEditor({
   onSelectionChange
 }: HTMLCanvasEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
   const [isSelecting, setIsSelecting] = useState(false);
 
   useEffect(() => {

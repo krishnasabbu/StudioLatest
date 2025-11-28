@@ -36,7 +36,7 @@ import {
   Type,
   Palette,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useState } from 'react';
 
 interface RichTextToolbarProps {
   onFormatClick: (command: string, value?: string) => void;
@@ -51,7 +51,9 @@ export default function RichTextToolbar({
   onImageClick,
   onCtaClick,
 }: RichTextToolbarProps) {
-  const { theme } = useTheme();
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'light'
+  );
 
   // Execute formatting command
   const executeCommand = (command: string, value: string | undefined = undefined) => {

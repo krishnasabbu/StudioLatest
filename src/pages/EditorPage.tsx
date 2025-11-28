@@ -19,13 +19,12 @@ import {
 } from '../lib/templateEngine';
 import { templateService } from '../services/templateService';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
 export default function EditorPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const navState = (location.state as any) || {};
-  const { theme, toggleTheme } = useTheme();
+  
 
   const [templateName, setTemplateName] = useState(navState.name || 'Untitled Template');
   const [templateDescription, setTemplateDescription] = useState(navState.description || '');
@@ -365,13 +364,7 @@ export default function EditorPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-gold hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-              </button>
+              
               <button
                 onClick={() => setShowHelp(!showHelp)}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-gold hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
