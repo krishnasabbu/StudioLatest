@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit2, Save, X, Info, GitBranch, PlusCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Info, GitBranch, PlusCircle, MessageSquare } from 'lucide-react';
 import { ConditionDefinition, ConditionClause, Variable, LogicOperator, ConditionOperator } from '../types/template';
+import ChatConditionBuilder from './ChatConditionBuilder';
 
 interface ConditionPanelProps {
   conditions: ConditionDefinition[];
@@ -12,6 +13,7 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ConditionDefinition | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showChatBuilder, setShowChatBuilder] = useState(false);
   const [newCondition, setNewCondition] = useState<Partial<ConditionDefinition>>({
     name: '',
     description: '',
@@ -91,6 +93,7 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
       description: newCondition.description || '',
       clauses: newCondition.clauses,
       logicOperator: newCondition.logicOperator || 'AND',
+      content: newCondition.content || '',
       hasElse: newCondition.hasElse || false,
       elseContent: newCondition.elseContent || '',
     };
@@ -101,10 +104,35 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
       description: '',
       clauses: [{ variable: '', operator: '==', value: '', valueType: 'literal' }],
       logicOperator: 'AND',
+      content: '',
       hasElse: false,
       elseContent: '',
     });
     setShowAddForm(false);
+  };
+
+  const handleChatConditionUpdate = (data: {
+    name: string;
+    description: string;
+    clauses: ConditionClause[];
+    logicOperator: LogicOperator;
+    content: string;
+    hasElse: boolean;
+    elseContent: string;
+  }) => {
+    const condition: ConditionDefinition = {
+      id: Date.now().toString(),
+      name: data.name.trim(),
+      description: data.description || '',
+      clauses: data.clauses,
+      logicOperator: data.logicOperator,
+      content: data.content,
+      hasElse: data.hasElse,
+      elseContent: data.elseContent || '',
+    };
+
+    onConditionsChange([...conditions, condition]);
+    setShowChatBuilder(false);
   };
 
   const handleEdit = (condition: ConditionDefinition) => {
@@ -279,13 +307,23 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
             <GitBranch className="text-wf-red" size={20} />
             <h2 className="text-lg font-semibold text-gray-800">Conditions</h2>
           </div>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-wf-red text-white rounded-lg hover:bg-red-700 text-sm font-bold shadow-lg hover:shadow-xl transition-all border-2 border-red-800"
-          >
-            <Plus size={16} />
-            Add
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowChatBuilder(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-bold shadow-lg hover:shadow-xl transition-all border-2 border-blue-800"
+              title="Build condition with AI assistant"
+            >
+              <MessageSquare size={16} />
+              Chat Builder
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-wf-red text-white rounded-lg hover:bg-red-700 text-sm font-bold shadow-lg hover:shadow-xl transition-all border-2 border-red-800"
+            >
+              <Plus size={16} />
+              Add
+            </button>
+          </div>
         </div>
         <div className="flex items-start gap-2">
           <Info size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
@@ -294,6 +332,20 @@ export default function ConditionPanel({ conditions, variables, onConditionsChan
           </p>
         </div>
       </div>
+
+      {showChatBuilder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[600px] flex">
+            <div className="flex-1">
+              <ChatConditionBuilder
+                variables={variables}
+                onConditionUpdate={handleChatConditionUpdate}
+                onClose={() => setShowChatBuilder(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4">
         {showAddForm && (
