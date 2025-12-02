@@ -23,6 +23,16 @@ interface ChatConditionBuilderProps {
     elseContent: string;
   }) => void;
   onClose: () => void;
+  onRealtimeUpdate?: (data: {
+    name?: string;
+    description?: string;
+    clauses?: ConditionClause[];
+    logicOperator?: LogicOperator;
+    content?: string;
+    hasElse?: boolean;
+    elseContent?: string;
+  }) => void;
+  hideCloseButton?: boolean;
 }
 
 type ChatStep =
@@ -51,7 +61,9 @@ const operatorLabels: Record<ConditionOperator, string> = {
 export default function ChatConditionBuilder({
   variables,
   onConditionUpdate,
-  onClose
+  onClose,
+  onRealtimeUpdate,
+  hideCloseButton = false
 }: ChatConditionBuilderProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -84,6 +96,20 @@ export default function ChatConditionBuilder({
     );
     setCurrentStep('condition_name');
   }, []);
+
+  const sendRealtimeUpdate = (data: {
+    name?: string;
+    description?: string;
+    clauses?: ConditionClause[];
+    logicOperator?: LogicOperator;
+    content?: string;
+    hasElse?: boolean;
+    elseContent?: string;
+  }) => {
+    if (onRealtimeUpdate) {
+      onRealtimeUpdate(data);
+    }
+  };
 
   const addBotMessage = (content: string, chips: Array<{ label: string; value: string; type?: string }> = []) => {
     const message: ChatMessage = {
@@ -153,8 +179,10 @@ export default function ChatConditionBuilder({
             value: value,
             valueType: 'variable',
           };
-          setClauses([...clauses, newClause]);
+          const updatedClauses = [...clauses, newClause];
+          setClauses(updatedClauses);
           setCurrentClause({});
+          sendRealtimeUpdate({ clauses: updatedClauses });
 
           addBotMessage(
             `Clause added: ${newClause.variable} ${operatorLabels[newClause.operator]} ${newClause.value}`,
@@ -171,10 +199,12 @@ export default function ChatConditionBuilder({
       case 'ask_else':
         if (value.toLowerCase() === 'yes') {
           setHasElse(true);
+          sendRealtimeUpdate({ hasElse: true });
           addBotMessage('Please enter the content to display when the condition is FALSE (ELSE):');
           setCurrentStep('enter_else_content');
         } else {
           setHasElse(false);
+          sendRealtimeUpdate({ hasElse: false });
           addBotMessage(
             'Would you like to add another clause?',
             [
@@ -212,6 +242,7 @@ export default function ChatConditionBuilder({
       switch (currentStep) {
         case 'condition_name':
           setConditionName(userMessage);
+          sendRealtimeUpdate({ name: userMessage });
           addBotMessage(
             `Perfect! Condition name set to "${userMessage}". Would you like to add a description? (Optional - type description or say "skip")`,
             [{ label: 'Skip', value: 'skip', type: 'skip' }]
@@ -228,6 +259,7 @@ export default function ChatConditionBuilder({
         case 'select_variable':
           if (userMessage.toLowerCase() !== 'skip' && currentStep === 'select_variable' && !currentClause.variable) {
             setConditionDescription(userMessage);
+            sendRealtimeUpdate({ description: userMessage });
           }
 
           const llmResponse = await processNaturalLanguage({
@@ -273,8 +305,10 @@ export default function ChatConditionBuilder({
               value: userMessage,
               valueType: 'literal',
             };
-            setClauses([...clauses, newClause]);
+            const updatedClauses = [...clauses, newClause];
+            setClauses(updatedClauses);
             setCurrentClause({});
+            sendRealtimeUpdate({ clauses: updatedClauses });
 
             addBotMessage(
               `Clause added: ${newClause.variable} ${operatorLabels[newClause.operator]} "${newClause.value}"`,
@@ -290,6 +324,7 @@ export default function ChatConditionBuilder({
 
         case 'enter_content':
           setContent(userMessage);
+          sendRealtimeUpdate({ content: userMessage });
           addBotMessage(
             'Content saved! Would you like to add an ELSE condition (content to show when FALSE)?',
             [
@@ -302,6 +337,7 @@ export default function ChatConditionBuilder({
 
         case 'enter_else_content':
           setElseContent(userMessage);
+          sendRealtimeUpdate({ elseContent: userMessage });
           addBotMessage(
             'ELSE content saved! Would you like to add another clause?',
             [
@@ -355,13 +391,15 @@ export default function ChatConditionBuilder({
           <Sparkles className="text-blue-600" size={20} />
           <h3 className="text-lg font-semibold text-gray-800">Condition Builder Assistant</h3>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Close chat"
-        >
-          <X size={20} />
-        </button>
+        {!hideCloseButton && (
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Close chat"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
