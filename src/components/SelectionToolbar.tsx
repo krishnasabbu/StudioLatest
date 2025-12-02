@@ -101,12 +101,17 @@ export default function SelectionToolbar({
           onWrapCondition={(conditionName) => {
             onWrapCondition(conditionName);
             setShowConditionModal(false);
+            onClose();
           }}
           onCreateAndWrapCondition={(condition) => {
             onCreateAndWrapCondition(condition);
             setShowConditionModal(false);
+            onClose();
           }}
-          onClose={() => setShowConditionModal(false)}
+          onClose={() => {
+            setShowConditionModal(false);
+            onClose();
+          }}
         />
       )}
 
@@ -135,7 +140,6 @@ export default function SelectionToolbar({
           <button
             onClick={() => {
               setShowConditionModal(true);
-              onClose();
             }}
             className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-left ${hoverClass} rounded-lg transition-colors ${textClass}`}
           >
