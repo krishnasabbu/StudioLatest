@@ -4,7 +4,6 @@ import { widgetTypes, WidgetType, getWidgetTypeLabel, getWidgetTypeIcon, detectW
 
 interface InlineWidgetBadgeProps {
   element: HTMLElement;
-  isHovered: boolean;
   isActive: boolean;
   onTypeChange: (newType: WidgetType) => void;
   onClick: () => void;
@@ -12,7 +11,6 @@ interface InlineWidgetBadgeProps {
 
 export default function InlineWidgetBadge({
   element,
-  isHovered,
   isActive,
   onTypeChange,
   onClick
@@ -49,29 +47,21 @@ export default function InlineWidgetBadge({
   const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900';
   const textSecondaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
 
-  const showBadge = isHovered || isActive;
-
   return (
     <div className="absolute left-0 top-0 z-[100] pointer-events-none" style={{ transform: 'translateX(-100%)' }}>
       <div className="flex items-center gap-1 pr-2 pointer-events-auto">
-        <div
-          className={`flex items-center transition-all duration-200 ${
-            showBadge ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-          }`}
+        <button
+          onClick={handleBadgeClick}
+          className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-all ${bgClass} ${hoverClass} ${textClass} shadow-sm`}
+          title="Change widget type"
         >
-          <button
-            onClick={handleBadgeClick}
-            className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-all ${bgClass} ${hoverClass} ${textClass} shadow-sm`}
-            title="Change widget type"
-          >
-            <GripVertical size={12} className="text-gray-400" />
-            <CurrentIcon size={13} className="text-blue-600" />
-            <ChevronDown
-              size={12}
-              className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </div>
+          <GripVertical size={12} className="text-gray-400" />
+          <CurrentIcon size={13} className="text-blue-600" />
+          <ChevronDown
+            size={12}
+            className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
 
         {isDropdownOpen && (
           <div

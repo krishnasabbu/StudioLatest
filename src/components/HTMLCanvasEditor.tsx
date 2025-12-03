@@ -26,7 +26,6 @@ export default function HTMLCanvasEditor({
   const [theme] = useState(localStorage.getItem('theme') || 'light');
   const [isSelecting, setIsSelecting] = useState(false);
   const [lineWidgets, setLineWidgets] = useState<LineWidget[]>([]);
-  const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
   const [activeElement, setActiveElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -75,28 +74,6 @@ export default function HTMLCanvasEditor({
     setLineWidgets(widgets);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isSelecting || activeElement) return;
-
-    const target = e.target as HTMLElement;
-    if (target === editorRef.current) {
-      setHoveredElement(null);
-      return;
-    }
-
-    const blockElement = findBlockElement(target);
-    if (blockElement && blockElement !== hoveredElement) {
-      setHoveredElement(blockElement);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!activeElement) {
-      setTimeout(() => {
-        setHoveredElement(null);
-      }, 100);
-    }
-  };
 
   const findBlockElement = (element: HTMLElement): HTMLElement | null => {
     if (!editorRef.current) return null;
@@ -115,7 +92,6 @@ export default function HTMLCanvasEditor({
 
   const handleBadgeClick = (element: HTMLElement) => {
     setActiveElement(element === activeElement ? null : element);
-    setHoveredElement(null);
   };
 
   const handleWidgetTypeChange = (element: HTMLElement, newType: WidgetType) => {
@@ -125,7 +101,6 @@ export default function HTMLCanvasEditor({
     element.parentNode?.replaceChild(newElement, element);
 
     setActiveElement(null);
-    setHoveredElement(null);
 
     if (editorRef.current) {
       onHtmlChange(editorRef.current.innerHTML);
@@ -192,9 +167,6 @@ export default function HTMLCanvasEditor({
   const handleBlur = () => {
     setTimeout(() => {
       setIsSelecting(false);
-      if (!activeElement) {
-        setHoveredElement(null);
-      }
     }, 200);
   };
 
@@ -236,10 +208,7 @@ export default function HTMLCanvasEditor({
       <div className="flex-1 overflow-auto p-6" ref={containerRef}>
         <div className="relative">
           {lineWidgets.map((widget, index) => {
-            const isHovered = widget.element === hoveredElement;
             const isActive = widget.element === activeElement;
-
-            if (!isHovered && !isActive) return null;
 
             return (
               <div
@@ -253,7 +222,6 @@ export default function HTMLCanvasEditor({
               >
                 <InlineWidgetBadge
                   element={widget.element}
-                  isHovered={isHovered}
                   isActive={isActive}
                   onTypeChange={(newType) => handleWidgetTypeChange(widget.element, newType)}
                   onClick={() => handleBadgeClick(widget.element)}
@@ -267,8 +235,6 @@ export default function HTMLCanvasEditor({
             contentEditable
             onInput={handleInput}
             onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
             onClick={handleEditorClick}
             onKeyUp={handleSelection}
             onBlur={handleBlur}
