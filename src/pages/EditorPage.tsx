@@ -19,6 +19,7 @@ import {
 } from '../lib/templateEngine';
 import { templateService } from '../services/templateService';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { convertWidgetType, WidgetType } from '../lib/widgetTypes';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -316,6 +317,24 @@ export default function EditorPage() {
     setSelection(null);
   };
 
+  const handleChangeWidget = (widgetType: WidgetType) => {
+    if (!selection?.element) return;
+
+    const element = selection.element;
+    const newElement = convertWidgetType(element, widgetType, true);
+    element.parentNode?.replaceChild(newElement, element);
+
+    const parent = newElement.parentElement;
+    if (parent) {
+      const editor = parent.closest('[contenteditable]');
+      if (editor) {
+        setTemplateHtml(editor.innerHTML);
+      }
+    }
+
+    setSelection(null);
+  };
+
   const handleSelectionChange = (newSelection: SelectionInfo | null) => {
     setSelection(newSelection);
 
@@ -589,6 +608,7 @@ export default function EditorPage() {
               onWrapLoop={handleWrapLoop}
               onInsertLink={handleInsertLink}
               onInsertCTA={handleInsertCTA}
+              onChangeWidget={handleChangeWidget}
               onClose={() => setSelection(null)}
             />
           )}
