@@ -57,6 +57,8 @@ export default function HTMLCanvasEditor({
 
     const elements = editorRef.current.querySelectorAll('[data-widget-enhanced]');
     const containerRect = containerRef.current.getBoundingClientRect();
+    const scrollTop = containerRef.current.scrollTop;
+    const scrollLeft = containerRef.current.scrollLeft;
     const widgets: LineWidget[] = [];
 
     elements.forEach((el) => {
@@ -65,8 +67,8 @@ export default function HTMLCanvasEditor({
 
       widgets.push({
         element: htmlEl,
-        top: rect.top - containerRect.top,
-        left: rect.left - containerRect.left,
+        top: rect.top - containerRect.top + scrollTop,
+        left: rect.left - containerRect.left + scrollLeft,
         height: rect.height
       });
     });
@@ -182,12 +184,21 @@ export default function HTMLCanvasEditor({
     updateLineWidgets();
 
     const handleResize = () => updateLineWidgets();
+    const handleScroll = () => updateLineWidgets();
+
     window.addEventListener('resize', handleResize);
+
+    if (containerRef.current) {
+      containerRef.current.addEventListener('scroll', handleScroll);
+    }
 
     const intervalId = setInterval(updateLineWidgets, 500);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('scroll', handleScroll);
+      }
       clearInterval(intervalId);
     };
   }, []);
@@ -205,15 +216,32 @@ export default function HTMLCanvasEditor({
 
   return (
     <div className="h-full flex flex-col transition-colors bg-white relative">
-      <div className="flex-1 overflow-auto p-6" ref={containerRef}>
-        <div className="relative">
+      <div className="flex-1 overflow-auto p-6 relative" ref={containerRef}>
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleInput}
+          onMouseUp={handleMouseUp}
+          onClick={handleEditorClick}
+          onKeyUp={handleSelection}
+          onBlur={handleBlur}
+          className="min-h-full outline-none border-2 rounded-lg p-4 transition-colors bg-white border-gray-200 text-gray-900"
+          style={{
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            paddingLeft: '60px'
+          }}
+          suppressContentEditableWarning
+        />
+
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {lineWidgets.map((widget, index) => {
             const isActive = widget.element === activeElement;
 
             return (
               <div
                 key={index}
-                className="absolute pointer-events-none"
+                className="absolute"
                 style={{
                   top: `${widget.top}px`,
                   left: `${widget.left}px`,
@@ -229,23 +257,6 @@ export default function HTMLCanvasEditor({
               </div>
             );
           })}
-
-          <div
-            ref={editorRef}
-            contentEditable
-            onInput={handleInput}
-            onMouseUp={handleMouseUp}
-            onClick={handleEditorClick}
-            onKeyUp={handleSelection}
-            onBlur={handleBlur}
-            className="min-h-full outline-none border-2 rounded-lg p-4 transition-colors bg-white border-gray-200 text-gray-900"
-            style={{
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              paddingLeft: '60px'
-            }}
-            suppressContentEditableWarning
-          />
         </div>
       </div>
     </div>
