@@ -526,7 +526,60 @@ export default function EditorPage() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-80 border-r bg-white dark:bg-gray-800 flex flex-col overflow-y-auto">
+        <div className="w-96 border-r bg-white dark:bg-gray-800 flex flex-col">
+          <div className="border-b bg-gray-50 dark:bg-gray-900 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <FileText size={16} className="text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Template Assistant</span>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <EditorChatPanel
+              variables={variables}
+              currentHTML={templateHtml}
+              onHTMLUpdate={setTemplateHtml}
+              onVariablesUpdate={setVariables}
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col overflow-hidden relative bg-white">
+          <div className="border-b bg-gray-50 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <Code2 size={16} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">HTML Template Editor</span>
+              <div className="ml-auto text-xs text-gray-500">
+                Select text to add variables or conditions
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <HTMLCanvasEditor
+              html={templateHtml}
+              onHtmlChange={setTemplateHtml}
+              onSelectionChange={handleSelectionChange}
+            />
+          </div>
+
+          {selection && (
+            <SelectionToolbar
+              selection={selection}
+              position={toolbarPosition}
+              conditions={conditions}
+              variables={variables}
+              onMakeVariable={handleMakeVariable}
+              onWrapCondition={handleWrapCondition}
+              onCreateAndWrapCondition={handleCreateAndWrapCondition}
+              onWrapLoop={handleWrapLoop}
+              onInsertLink={handleInsertLink}
+              onInsertCTA={handleInsertCTA}
+              onChangeWidget={handleChangeWidget}
+              onClose={() => setSelection(null)}
+            />
+          )}
+        </div>
+
+        <div className="w-80 border-l bg-white dark:bg-gray-800 flex flex-col overflow-y-auto">
           {/* Variables Section */}
           <div className="border-b border-gray-200 dark:border-gray-700">
             <button
@@ -661,59 +714,6 @@ export default function EditorPage() {
                 <CTAPanel ctaButtons={ctaButtons} onCTAButtonsChange={setCtaButtons} />
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-white">
-          <div className="border-b bg-gray-50 px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Code2 size={16} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">HTML Template Editor</span>
-              <div className="ml-auto text-xs text-gray-500">
-                Select text to add variables or conditions
-              </div>
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto">
-            <HTMLCanvasEditor
-              html={templateHtml}
-              onHtmlChange={setTemplateHtml}
-              onSelectionChange={handleSelectionChange}
-            />
-          </div>
-
-          {selection && (
-            <SelectionToolbar
-              selection={selection}
-              position={toolbarPosition}
-              conditions={conditions}
-              variables={variables}
-              onMakeVariable={handleMakeVariable}
-              onWrapCondition={handleWrapCondition}
-              onCreateAndWrapCondition={handleCreateAndWrapCondition}
-              onWrapLoop={handleWrapLoop}
-              onInsertLink={handleInsertLink}
-              onInsertCTA={handleInsertCTA}
-              onChangeWidget={handleChangeWidget}
-              onClose={() => setSelection(null)}
-            />
-          )}
-        </div>
-
-        <div className="w-96 border-l bg-white dark:bg-gray-800 flex flex-col">
-          <div className="border-b bg-gray-50 dark:bg-gray-900 px-4 py-2">
-            <div className="flex items-center gap-2">
-              <FileText size={16} className="text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Template Assistant</span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <EditorChatPanel
-              variables={variables}
-              currentHTML={templateHtml}
-              onHTMLUpdate={setTemplateHtml}
-              onVariablesUpdate={setVariables}
-            />
           </div>
         </div>
       </div>
