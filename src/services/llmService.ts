@@ -365,3 +365,113 @@ export async function processNaturalLanguage(request: LLMRequest): Promise<LLMRe
     }, 500);
   });
 }
+
+export interface HTMLManipulationRequest {
+  userRequest: string;
+  currentHTML: string;
+  variables: Variable[];
+  conversationHistory: ConversationMessage[];
+}
+
+export interface HTMLManipulationResult {
+  success: boolean;
+  updatedHTML?: string;
+  newVariables?: Variable[];
+  explanation?: string;
+  error?: string;
+}
+
+const LLM_HTML_MANIPULATION_API_URL = import.meta.env.VITE_LLM_HTML_MANIPULATION_API_URL;
+
+export async function manipulateHTMLWithLLM(
+  request: HTMLManipulationRequest,
+  onChunk: (chunk: string) => void
+): Promise<HTMLManipulationResult> {
+  try {
+    const systemMessage: ConversationMessage = {
+      role: 'system',
+      content: `You are an intelligent assistant that helps users modify HTML email templates.
+
+Your task is to:
+1. Understand the user's request for creating variables or conditions
+2. Modify the HTML to insert the appropriate template syntax
+3. Return the updated HTML with proper handlebars/template syntax
+
+Template Syntax:
+- Variables: {{variableName}}
+- Conditions: {{%conditionName%}}...{{%/conditionName%}}
+- Else blocks: {{%conditionName%}}...{{%else%}}...{{%/conditionName%}}
+
+Available variables: ${request.variables.map(v => v.name).join(', ')}
+
+Response format: You must return a JSON object with:
+{
+  "success": true,
+  "updatedHTML": "the modified HTML with template syntax",
+  "newVariables": [{"name": "varName", "type": "string", "description": "desc"}],
+  "explanation": "what you changed"
+}
+
+IMPORTANT: Preserve all HTML structure, styling, and attributes. Only add template syntax where needed.`
+    };
+
+    const messages = [
+      systemMessage,
+      ...request.conversationHistory,
+      {
+        role: 'user' as const,
+        content: `Current HTML:
+\`\`\`html
+${request.currentHTML}
+\`\`\`
+
+User request: ${request.userRequest}
+
+Please modify the HTML according to the request and return the result in the specified JSON format.`
+      }
+    ];
+
+    const response = await fetch(LLM_HTML_MANIPULATION_API_URL || LLM_CONSTRUCT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        messages,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    let content = result.content || result.choices?.[0]?.message?.content || '';
+    onChunk(content);
+
+    const jsonMatch = content.match(/\{[\s\S]*"success"[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        success: parsed.success,
+        updatedHTML: parsed.updatedHTML,
+        newVariables: parsed.newVariables,
+        explanation: parsed.explanation,
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Failed to parse LLM response',
+    };
+  } catch (error) {
+    console.error('Error manipulating HTML with LLM:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}

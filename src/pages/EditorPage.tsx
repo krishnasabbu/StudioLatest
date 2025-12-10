@@ -6,7 +6,7 @@ import VariablePanel from '../components/VariablePanel';
 import ConditionPanel from '../components/ConditionPanel';
 import HyperlinkPanel from '../components/HyperlinkPanel';
 import CTAPanel from '../components/CTAPanel';
-import FRDGeneratorPanel from '../components/FRDGeneratorPanel';
+import EditorChatPanel from '../components/EditorChatPanel';
 import LiveEmailPreview from '../components/LiveEmailPreview';
 import LivePreviewModal from '../components/modals/LivePreviewModal';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
@@ -20,6 +20,7 @@ import {
 import { templateService } from '../services/templateService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { convertWidgetType, WidgetType } from '../lib/widgetTypes';
+import { generateFRDDocument } from '../lib/frdGenerator';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ export default function EditorPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['variables']));
   const [showHelp, setShowHelp] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
+  const [isGeneratingFRD, setIsGeneratingFRD] = useState(false);
 
   useEffect(() => {
     const loadExistingTemplate = async () => {
@@ -240,6 +242,82 @@ export default function EditorPage() {
     linkElement.click();
   };
 
+  const handleDownloadFRD = async () => {
+    setIsGeneratingFRD(true);
+    try {
+      const formattedHtml = htmlToFormattedText(templateHtml);
+      await generateFRDDocument({
+        templateName,
+        templateDescription,
+        templateHtml: formattedHtml,
+        variables,
+        conditions,
+        hyperlinks,
+        ctaButtons,
+      });
+    } catch (error) {
+      console.error('Error generating FRD document:', error);
+      alert('Failed to generate FRD document. Please try again.');
+    } finally {
+      setIsGeneratingFRD(false);
+    }
+  };
+
+  function htmlToFormattedText(html: string): string {
+    if (!html) return "";
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    doc.querySelectorAll("style, script").forEach((el) => el.remove());
+
+    function nodeToText(node: Node): string {
+      let text = "";
+
+      node.childNodes.forEach((child) => {
+        if (child.nodeType === Node.TEXT_NODE) {
+          const value = child.textContent || "";
+          text += value.replace(/\s+/g, " ").trim();
+        }
+
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const el = child as HTMLElement;
+
+          if (["BR"].includes(el.tagName)) {
+            text += "\n";
+          }
+
+          if (["P", "DIV", "SECTION", "ARTICLE"].includes(el.tagName)) {
+            text += "\n" + nodeToText(el) + "\n";
+          }
+
+          else if (["H1","H2","H3","H4","H5","H6"].includes(el.tagName)) {
+            text += "\n" + nodeToText(el) + "\n";
+          }
+
+          else if (el.tagName === "LI") {
+            text += "• " + nodeToText(el) + "\n";
+          }
+
+          else if (["A", "BUTTON"].includes(el.tagName)) {
+            text += "[" + (el.textContent?.trim() || "") + "] ";
+          }
+
+          else if (!["P","DIV","SECTION","ARTICLE","H1","H2","H3","H4","H5","H6","LI","BR","A","BUTTON"].includes(el.tagName)) {
+            text += nodeToText(el);
+          }
+        }
+      });
+
+      return text;
+    }
+
+    let result = nodeToText(doc.body);
+    result = result.replace(/\n{3,}/g, "\n\n");
+
+    return result.trim();
+  }
+
   const handleInsertLink = (url: string, text: string) => {
     if (!selection?.range) return;
 
@@ -383,7 +461,7 @@ export default function EditorPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              
+
               <button
                 onClick={() => setShowHelp(!showHelp)}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-gold hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -397,6 +475,14 @@ export default function EditorPage() {
               >
                 <Play size={18} strokeWidth={2.5} />
                 Live Preview
+              </button>
+              <button
+                onClick={handleDownloadFRD}
+                disabled={isGeneratingFRD}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-green-600 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:border-green-700 font-bold transition-all shadow-md disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed"
+              >
+                <FileText size={18} strokeWidth={2.5} />
+                {isGeneratingFRD ? 'Generating...' : 'Download FRD'}
               </button>
               <button
                 onClick={handleExport}
@@ -618,18 +704,15 @@ export default function EditorPage() {
           <div className="border-b bg-gray-50 dark:bg-gray-900 px-4 py-2">
             <div className="flex items-center gap-2">
               <FileText size={16} className="text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">FRD Generator</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Template Assistant</span>
             </div>
           </div>
           <div className="flex-1 overflow-hidden">
-            <FRDGeneratorPanel
-              templateName={templateName}
-              templateDescription={templateDescription}
-              templateHtml={templateHtml}
+            <EditorChatPanel
               variables={variables}
-              conditions={conditions}
-              hyperlinks={hyperlinks}
-              ctaButtons={ctaButtons}
+              currentHTML={templateHtml}
+              onHTMLUpdate={setTemplateHtml}
+              onVariablesUpdate={setVariables}
             />
           </div>
         </div>
