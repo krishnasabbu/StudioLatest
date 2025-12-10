@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader, Sparkles, X } from 'lucide-react';
+import { Send, Bot, User, Loader, Sparkles, X, Zap, CheckCircle2, MessageCircle } from 'lucide-react';
 import { Variable, ConditionClause, ConditionOperator, LogicOperator } from '../types/template';
-import { processNaturalLanguage, LLMResponse } from '../services/llmService';
+import { chatWithLLM, analyzeConversationForCondition } from '../services/llmService';
 
 interface ChatMessage {
   id: string;
   type: 'bot' | 'user';
   content: string;
-  chips?: Array<{ label: string; value: string; type?: string }>;
+  isStreaming?: boolean;
   timestamp: Date;
 }
 
@@ -35,29 +35,6 @@ interface ChatConditionBuilderProps {
   hideCloseButton?: boolean;
 }
 
-type ChatStep =
-  | 'welcome'
-  | 'condition_name'
-  | 'select_variable'
-  | 'select_operator'
-  | 'enter_value'
-  | 'enter_content'
-  | 'ask_else'
-  | 'enter_else_content'
-  | 'ask_add_clause'
-  | 'complete';
-
-const operatorLabels: Record<ConditionOperator, string> = {
-  '==': 'equals',
-  '!=': 'not equals',
-  '>': 'greater than',
-  '<': 'less than',
-  '>=': 'greater or equal',
-  '<=': 'less or equal',
-  'contains': 'contains',
-  'notContains': 'not contains',
-};
-
 export default function ChatConditionBuilder({
   variables,
   onConditionUpdate,
@@ -68,15 +45,10 @@ export default function ChatConditionBuilder({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState<ChatStep>('welcome');
-  const [currentClause, setCurrentClause] = useState<Partial<ConditionClause>>({});
-  const [clauses, setClauses] = useState<ConditionClause[]>([]);
-  const [conditionName, setConditionName] = useState('');
-  const [conditionDescription, setConditionDescription] = useState('');
-  const [logicOperator, setLogicOperator] = useState<LogicOperator>('AND');
-  const [content, setContent] = useState('');
-  const [hasElse, setHasElse] = useState(false);
-  const [elseContent, setElseContent] = useState('');
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
+  const [messageCount, setMessageCount] = useState(0);
+  const [showConstructButton, setShowConstructButton] = useState(false);
+  const [isConstructing, setIsConstructing] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -91,35 +63,61 @@ export default function ChatConditionBuilder({
 
   useEffect(() => {
     addBotMessage(
-      "Hi! I'll help you create a condition. Let's start by giving your condition a name.",
-      []
+      `Hi! I'm your AI assistant for creating email template conditions. I can help you build conditions using natural language. Just tell me what you want to check for!\n\nFor example, you could say:\n• "Show this content if the user is a premium customer"\n• "Only display this if accountStatus equals active"\n• "Hide this section when isPremiumUser is false"`,
+      false
     );
-    setCurrentStep('condition_name');
-  }, []);
 
-  const sendRealtimeUpdate = (data: {
-    name?: string;
-    description?: string;
-    clauses?: ConditionClause[];
-    logicOperator?: LogicOperator;
-    content?: string;
-    hasElse?: boolean;
-    elseContent?: string;
-  }) => {
-    if (onRealtimeUpdate) {
-      onRealtimeUpdate(data);
+    const systemMessage = {
+      role: 'system',
+      content: `You are an intelligent assistant helping users create conditional logic for email templates. The user has these variables available: ${variables.map(v => v.name).join(', ')}.
+
+Your job is to:
+1. Understand what condition the user wants to create using natural language
+2. Extract the variable name, operator, and value from their description
+3. Help them refine the condition if needed
+4. Ask clarifying questions when unclear
+
+Be conversational, helpful, and guide them through the process naturally. When they describe a condition, acknowledge it and help them build it step by step.`
+    };
+    setConversationHistory([systemMessage]);
+  }, [variables]);
+
+  useEffect(() => {
+    if (messageCount >= 3) {
+      setShowConstructButton(true);
     }
-  };
+  }, [messageCount]);
 
-  const addBotMessage = (content: string, chips: Array<{ label: string; value: string; type?: string }> = []) => {
+  const addBotMessage = (content: string, isStreaming: boolean = false) => {
     const message: ChatMessage = {
       id: Date.now().toString() + Math.random(),
       type: 'bot',
       content,
-      chips,
+      isStreaming,
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, message]);
+  };
+
+  const updateLastBotMessage = (content: string) => {
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      if (newMessages.length > 0 && newMessages[newMessages.length - 1].type === 'bot') {
+        newMessages[newMessages.length - 1].content = content;
+        newMessages[newMessages.length - 1].isStreaming = true;
+      }
+      return newMessages;
+    });
+  };
+
+  const finalizeLastBotMessage = () => {
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      if (newMessages.length > 0 && newMessages[newMessages.length - 1].type === 'bot') {
+        newMessages[newMessages.length - 1].isStreaming = false;
+      }
+      return newMessages;
+    });
   };
 
   const addUserMessage = (content: string) => {
@@ -130,104 +128,7 @@ export default function ChatConditionBuilder({
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, message]);
-  };
-
-  const handleChipClick = async (value: string, type?: string) => {
-    addUserMessage(value);
-
-    switch (currentStep) {
-      case 'select_variable':
-        setCurrentClause({ ...currentClause, variable: value });
-        addBotMessage(
-          `Great! Variable "${value}" selected. Now choose an operator:`,
-          Object.entries(operatorLabels).map(([op, label]) => ({
-            label,
-            value: op,
-            type: 'operator',
-          }))
-        );
-        setCurrentStep('select_operator');
-        break;
-
-      case 'select_operator':
-        setCurrentClause({ ...currentClause, operator: value as ConditionOperator });
-        addBotMessage(
-          `Perfect! Operator "${operatorLabels[value as ConditionOperator]}" selected. Now enter the value to compare against:`,
-          [
-            { label: 'Enter literal value', value: 'literal', type: 'valueType' },
-            { label: 'Use another variable', value: 'variable', type: 'valueType' },
-          ]
-        );
-        setCurrentStep('enter_value');
-        break;
-
-      case 'enter_value':
-        if (type === 'valueType') {
-          if (value === 'variable') {
-            addBotMessage(
-              'Select a variable to compare against:',
-              variables.map((v) => ({ label: v.name, value: v.name, type: 'variableValue' }))
-            );
-          } else {
-            addBotMessage('Please type the value you want to compare against (then press Enter).');
-          }
-          setCurrentClause({ ...currentClause, valueType: value as 'literal' | 'variable' });
-        } else if (type === 'variableValue') {
-          const newClause: ConditionClause = {
-            variable: currentClause.variable!,
-            operator: currentClause.operator!,
-            value: value,
-            valueType: 'variable',
-          };
-          const updatedClauses = [...clauses, newClause];
-          setClauses(updatedClauses);
-          setCurrentClause({});
-          sendRealtimeUpdate({ clauses: updatedClauses });
-
-          addBotMessage(
-            `Clause added: ${newClause.variable} ${operatorLabels[newClause.operator]} ${newClause.value}`,
-            []
-          );
-          addBotMessage(
-            'Now, enter the content to display when this condition is TRUE:',
-            []
-          );
-          setCurrentStep('enter_content');
-        }
-        break;
-
-      case 'ask_else':
-        if (value.toLowerCase() === 'yes') {
-          setHasElse(true);
-          sendRealtimeUpdate({ hasElse: true });
-          addBotMessage('Please enter the content to display when the condition is FALSE (ELSE):');
-          setCurrentStep('enter_else_content');
-        } else {
-          setHasElse(false);
-          sendRealtimeUpdate({ hasElse: false });
-          addBotMessage(
-            'Would you like to add another clause?',
-            [
-              { label: 'Yes, add another clause', value: 'yes', type: 'addClause' },
-              { label: 'No, finish', value: 'no', type: 'addClause' },
-            ]
-          );
-          setCurrentStep('ask_add_clause');
-        }
-        break;
-
-      case 'ask_add_clause':
-        if (value.toLowerCase() === 'yes') {
-          addBotMessage(
-            'Select a variable for the new clause:',
-            variables.map((v) => ({ label: v.name, value: v.name, type: 'variable' }))
-          );
-          setCurrentStep('select_variable');
-        } else {
-          completeCondition();
-        }
-        break;
-    }
+    setMessageCount(prev => prev + 1);
   };
 
   const handleSendMessage = async () => {
@@ -238,143 +139,84 @@ export default function ChatConditionBuilder({
     setInput('');
     setIsLoading(true);
 
+    const userMsg = { role: 'user', content: userMessage };
+    const updatedHistory = [...conversationHistory, userMsg];
+    setConversationHistory(updatedHistory);
+
     try {
-      switch (currentStep) {
-        case 'condition_name':
-          setConditionName(userMessage);
-          sendRealtimeUpdate({ name: userMessage });
-          addBotMessage(
-            `Perfect! Condition name set to "${userMessage}". Would you like to add a description? (Optional - type description or say "skip")`,
-            [{ label: 'Skip', value: 'skip', type: 'skip' }]
-          );
-          setCurrentStep('select_variable');
-          setTimeout(() => {
-            addBotMessage(
-              'Now, select a variable to start building your condition:',
-              variables.map((v) => ({ label: v.name, value: v.name, type: 'variable' }))
-            );
-          }, 500);
-          break;
+      addBotMessage('', true);
 
-        case 'select_variable':
-          if (userMessage.toLowerCase() !== 'skip' && currentStep === 'select_variable' && !currentClause.variable) {
-            setConditionDescription(userMessage);
-            sendRealtimeUpdate({ description: userMessage });
-          }
+      let accumulatedResponse = '';
+      await chatWithLLM(updatedHistory, variables, (chunk) => {
+        accumulatedResponse += chunk;
+        updateLastBotMessage(accumulatedResponse);
+      });
 
-          const llmResponse = await processNaturalLanguage({
-            message: userMessage,
-            context: {
-              variables: variables.map(v => ({ name: v.name, type: v.type })),
-              conditions: [],
-              currentStep: 'select_variable',
-            },
-          });
+      finalizeLastBotMessage();
 
-          if (llmResponse.extractedData?.variable) {
-            handleChipClick(llmResponse.extractedData.variable, 'variable');
-          } else {
-            addBotMessage(llmResponse.message);
-          }
-          break;
+      const assistantMsg = { role: 'assistant', content: accumulatedResponse };
+      setConversationHistory([...updatedHistory, assistantMsg]);
 
-        case 'select_operator':
-          const operatorResponse = await processNaturalLanguage({
-            message: userMessage,
-            context: {
-              variables: variables.map(v => ({ name: v.name, type: v.type })),
-              conditions: [],
-              currentStep: 'select_operator',
-            },
-          });
-
-          if (operatorResponse.extractedData?.operator) {
-            handleChipClick(operatorResponse.extractedData.operator, 'operator');
-          } else {
-            addBotMessage(operatorResponse.message);
-          }
-          break;
-
-        case 'enter_value':
-          if (!currentClause.valueType) {
-            addBotMessage('Please select whether you want to enter a literal value or use a variable.');
-          } else if (currentClause.valueType === 'literal') {
-            const newClause: ConditionClause = {
-              variable: currentClause.variable!,
-              operator: currentClause.operator!,
-              value: userMessage,
-              valueType: 'literal',
-            };
-            const updatedClauses = [...clauses, newClause];
-            setClauses(updatedClauses);
-            setCurrentClause({});
-            sendRealtimeUpdate({ clauses: updatedClauses });
-
-            addBotMessage(
-              `Clause added: ${newClause.variable} ${operatorLabels[newClause.operator]} "${newClause.value}"`,
-              []
-            );
-            addBotMessage(
-              'Now, enter the content to display when this condition is TRUE:',
-              []
-            );
-            setCurrentStep('enter_content');
-          }
-          break;
-
-        case 'enter_content':
-          setContent(userMessage);
-          sendRealtimeUpdate({ content: userMessage });
-          addBotMessage(
-            'Content saved! Would you like to add an ELSE condition (content to show when FALSE)?',
-            [
-              { label: 'Yes', value: 'yes', type: 'else' },
-              { label: 'No', value: 'no', type: 'else' },
-            ]
-          );
-          setCurrentStep('ask_else');
-          break;
-
-        case 'enter_else_content':
-          setElseContent(userMessage);
-          sendRealtimeUpdate({ elseContent: userMessage });
-          addBotMessage(
-            'ELSE content saved! Would you like to add another clause?',
-            [
-              { label: 'Yes, add another clause', value: 'yes', type: 'addClause' },
-              { label: 'No, finish', value: 'no', type: 'addClause' },
-            ]
-          );
-          setCurrentStep('ask_add_clause');
-          break;
-
-        default:
-          addBotMessage("I'm not sure what you mean. Please use the options provided or try again.");
-      }
     } catch (error) {
-      console.error('Error processing message:', error);
-      addBotMessage('Sorry, I encountered an error. Please try again.');
+      console.error('Error in chat:', error);
+      updateLastBotMessage('Sorry, I encountered an error. Please try again.');
+      finalizeLastBotMessage();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const completeCondition = () => {
-    addBotMessage('Perfect! Your condition has been created successfully. 🎉');
+  const handleConstruct = async () => {
+    if (isConstructing) return;
 
-    onConditionUpdate({
-      name: conditionName,
-      description: conditionDescription,
-      clauses,
-      logicOperator,
-      content,
-      hasElse,
-      elseContent,
-    });
+    setIsConstructing(true);
+    addBotMessage('', true);
+    updateLastBotMessage('🔍 Analyzing our conversation to extract the condition...');
 
-    setTimeout(() => {
-      onClose();
-    }, 1500);
+    try {
+      const analysisResult = await analyzeConversationForCondition(conversationHistory, variables);
+
+      if (analysisResult.success && analysisResult.condition) {
+        updateLastBotMessage(
+          `✅ Perfect! I've extracted your condition:\n\n**Name:** ${analysisResult.condition.name}\n**Description:** ${analysisResult.condition.description}\n\n**Condition Logic:**\n${analysisResult.condition.clauses.map((c, i) => `${i + 1}. ${c.variable} ${c.operator} "${c.value}"`).join('\n')}\n\nApplying this condition now...`
+        );
+        finalizeLastBotMessage();
+
+        if (onRealtimeUpdate) {
+          onRealtimeUpdate({
+            name: analysisResult.condition.name,
+            description: analysisResult.condition.description,
+            clauses: analysisResult.condition.clauses,
+            logicOperator: analysisResult.condition.logicOperator,
+            hasElse: analysisResult.condition.hasElse,
+            elseContent: analysisResult.condition.elseContent
+          });
+        }
+
+        setTimeout(() => {
+          onConditionUpdate({
+            name: analysisResult.condition!.name,
+            description: analysisResult.condition!.description,
+            clauses: analysisResult.condition!.clauses,
+            logicOperator: analysisResult.condition!.logicOperator,
+            content: '',
+            hasElse: analysisResult.condition!.hasElse,
+            elseContent: analysisResult.condition!.elseContent
+          });
+        }, 1500);
+      } else {
+        updateLastBotMessage(
+          `⚠️ I need more information to create the condition. Please tell me:\n\n1. What variable do you want to check?\n2. What comparison do you want to make?\n3. What value should it be compared against?\n\nFor example: "Check if isPremiumUser equals true"`
+        );
+        finalizeLastBotMessage();
+      }
+    } catch (error) {
+      console.error('Error constructing condition:', error);
+      updateLastBotMessage('Sorry, I had trouble analyzing the conversation. Could you describe the condition more clearly?');
+      finalizeLastBotMessage();
+    } finally {
+      setIsConstructing(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -385,11 +227,20 @@ export default function ChatConditionBuilder({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="flex items-center justify-between p-4 bg-white border-b shadow-sm">
-        <div className="flex items-center gap-2">
-          <Sparkles className="text-blue-600" size={20} />
-          <h3 className="text-lg font-semibold text-gray-800">Condition Builder Assistant</h3>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <MessageCircle className="text-purple-600" size={24} />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              AI Condition Builder
+              <Sparkles className="text-purple-500 animate-pulse" size={16} />
+            </h3>
+            <p className="text-xs text-gray-500">Chat naturally to build your condition</p>
+          </div>
         </div>
         {!hideCloseButton && (
           <button
@@ -402,60 +253,51 @@ export default function ChatConditionBuilder({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex items-start gap-3 ${
+            className={`flex items-start gap-3 animate-fade-in ${
               message.type === 'user' ? 'flex-row-reverse' : ''
             }`}
           >
             <div
-              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
                 message.type === 'bot'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-white'
+                  ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+                  : 'bg-gradient-to-br from-gray-700 to-gray-900 text-white'
               }`}
             >
-              {message.type === 'bot' ? <Bot size={18} /> : <User size={18} />}
+              {message.type === 'bot' ? <Bot size={20} /> : <User size={20} />}
             </div>
 
             <div className={`flex-1 ${message.type === 'user' ? 'flex justify-end' : ''}`}>
               <div
-                className={`inline-block max-w-[80%] p-3 rounded-lg ${
+                className={`inline-block max-w-[85%] p-4 rounded-2xl shadow-md ${
                   message.type === 'bot'
                     ? 'bg-white border border-gray-200 text-gray-800'
-                    : 'bg-blue-600 text-white'
+                    : 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-
-                {message.chips && message.chips.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {message.chips.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleChipClick(chip.value, chip.type)}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        aria-label={`Select ${chip.label}`}
-                      >
-                        {chip.label}
-                      </button>
-                    ))}
-                  </div>
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                {message.isStreaming && (
+                  <span className="inline-block w-2 h-4 ml-1 bg-purple-600 animate-pulse" />
                 )}
               </div>
+              <p className={`text-xs text-gray-400 mt-1 ${message.type === 'user' ? 'text-right' : ''}`}>
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
           </div>
         ))}
 
-        {isLoading && (
+        {isLoading && !messages[messages.length - 1]?.isStreaming && (
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-              <Bot size={18} />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 text-white flex items-center justify-center shadow-md">
+              <Bot size={20} />
             </div>
-            <div className="inline-block p-3 rounded-lg bg-white border border-gray-200">
-              <Loader className="animate-spin text-blue-600" size={18} />
+            <div className="inline-block p-4 rounded-2xl bg-white border border-gray-200 shadow-md">
+              <Loader className="animate-spin text-purple-600" size={20} />
             </div>
           </div>
         )}
@@ -463,32 +305,97 @@ export default function ChatConditionBuilder({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-white border-t">
-        <div className="flex gap-2">
+      {showConstructButton && (
+        <div className="px-6 pb-4">
+          <button
+            onClick={handleConstruct}
+            disabled={isConstructing}
+            className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-bold text-white shadow-lg hover:shadow-xl transition-all transform hover:scale-105 ${
+              isConstructing
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 animate-pulse-subtle'
+            }`}
+          >
+            {isConstructing ? (
+              <>
+                <Loader className="animate-spin" size={20} />
+                Constructing...
+              </>
+            ) : (
+              <>
+                <Zap size={20} />
+                Construct Condition from Chat
+                <CheckCircle2 size={20} />
+              </>
+            )}
+          </button>
+          <p className="text-center text-xs text-gray-500 mt-2">
+            Click to automatically extract condition from conversation
+          </p>
+        </div>
+      )}
+
+      <div className="p-4 bg-white border-t shadow-lg">
+        <div className="flex gap-3">
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            placeholder="Describe the condition you want to create..."
+            className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm shadow-sm transition-all"
             disabled={isLoading}
             aria-label="Chat message input"
           />
           <button
             onClick={handleSendMessage}
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg transform hover:scale-105 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             aria-label="Send message"
           >
-            <Send size={18} />
+            <Send size={20} />
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Press Enter to send • Use chips for quick selection
-        </p>
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-xs text-gray-500">
+            Press <kbd className="px-2 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> to send
+          </p>
+          <p className="text-xs text-gray-400">
+            {messageCount} message{messageCount !== 1 ? 's' : ''} exchanged
+          </p>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+
+        @keyframes pulse-subtle {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+          }
+          50% {
+            box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+          }
+        }
+
+        .animate-pulse-subtle {
+          animation: pulse-subtle 2s infinite;
+        }
+      `}</style>
     </div>
   );
 }
