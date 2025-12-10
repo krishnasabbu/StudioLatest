@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Upload, FileCode, ArrowRight, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { toggleTheme } from '../store/slices/themeSlice';
 
 export default function ImportPage() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState(
-    localStorage.getItem('theme') || 'light'
-  );
+  const dispatch = useAppDispatch();
+  const { isDarkMode } = useAppSelector(state => state.theme);
   const [htmlContent, setHtmlContent] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [description, setDescription] = useState('');
@@ -39,25 +40,25 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="bg-wf-red dark:bg-gray-800 py-6 shadow-lg mb-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-slate-900 dark:to-slate-900 py-6 shadow-sm mb-8 border-b border-blue-700 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-6">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
               <h1 className="text-3xl font-bold text-white mb-1">Import HTML Template</h1>
-              <p className="text-red-100 dark:text-gray-300">
+              <p className="text-blue-100 dark:text-slate-400">
                 Upload or paste your HTML email template to get started
               </p>
             </div>
-            
+
           </div>
         </div>
       </div>
       <div className="max-w-4xl mx-auto px-6">
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 p-8">
           <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
               Template Name
             </label>
             <input
@@ -65,12 +66,12 @@ export default function ImportPage() {
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               placeholder="e.g., Welcome Email"
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-wf-red focus:border-transparent font-medium"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent font-medium placeholder-gray-400 dark:placeholder-slate-500"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
               Description (Optional)
             </label>
             <input
@@ -78,15 +79,15 @@ export default function ImportPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of this template"
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-wf-red focus:border-transparent font-medium"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent font-medium placeholder-gray-400 dark:placeholder-slate-500"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
               Upload HTML File
             </label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-wf-red dark:hover:border-wf-red transition-colors bg-gray-50 dark:bg-gray-900/50">
+            <div className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-8 text-center hover:border-blue-500 dark:hover:border-blue-600 transition-colors bg-gray-50 dark:bg-slate-800/50">
               <input
                 type="file"
                 accept=".html,.htm"
