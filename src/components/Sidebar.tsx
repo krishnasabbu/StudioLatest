@@ -56,21 +56,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const filteredNavItems = navItems.filter(item => hasPermission(item.permission));
 
   return (
-    <div className={`bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${
+    <div className={`bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-64'
-    } flex flex-col h-full shadow-lg`}>
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    } flex flex-col h-full shadow-sm`}>
+      <div className="p-4 border-b border-gray-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-white" />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-wf-red via-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-md">
+                <AlertTriangle className="h-6 w-6 text-white" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-primary-700 dark:text-white">
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
                   Alerts Studio
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">
                   Wells Fargo
                 </p>
               </div>
@@ -78,31 +78,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
           >
             {isCollapsed ? (
-              <ChevronRight className="h-5 w-5 text-primary-600 dark:text-gray-400" />
+              <ChevronRight className="h-5 w-5 text-gray-600 dark:text-slate-400" />
             ) : (
-              <ChevronLeft className="h-5 w-5 text-primary-600 dark:text-gray-400" />
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-slate-400" />
             )}
           </button>
         </div>
       </div>
-      
-      <nav className="flex-1 p-4 space-y-2">
+
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {filteredNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              `flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200 shadow-md border-r-2 border-primary-500'
-                  : 'text-gray-700 hover:bg-primary-50 dark:text-gray-300 dark:hover:bg-gray-700 hover:text-primary-600'
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-50/50 dark:from-blue-950 dark:to-blue-950/50 text-blue-700 dark:text-blue-300 shadow-sm border-l-4 border-blue-600 dark:border-blue-400 pl-2'
+                  : 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
               }`
             }
           >
-            <item.icon className="h-5 w-5 flex-shrink-0" />
+            <item.icon className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
             {!isCollapsed && <span className="ml-3 truncate">{item.label}</span>}
           </NavLink>
         ))}

@@ -430,25 +430,25 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-md">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-950 transition-colors">
+      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
         <div className="px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-wf-red hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-slate-400 hover:text-wf-red dark:hover:text-wf-red hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 <ArrowLeft size={18} />
-                <span className="text-sm font-medium">Back</span>
+                <span className="text-sm font-semibold">Back</span>
               </button>
-              <div className="h-8 w-px bg-gray-300"></div>
+              <div className="h-8 w-px bg-gray-300 dark:bg-slate-700"></div>
               <div className="flex-1 max-w-2xl">
                 <input
                   type="text"
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
-                  className="text-xl font-bold text-gray-900 dark:text-white dark:bg-gray-800 w-full border-0 outline-none focus:ring-2 focus:ring-wf-red rounded px-2 py-1"
+                  className="text-xl font-bold text-gray-900 dark:text-white dark:bg-slate-900 w-full border-0 outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded px-2 py-1 placeholder-gray-400 dark:placeholder-slate-500"
                   placeholder="Template name"
                 />
                 <input
@@ -456,7 +456,7 @@ export default function EditorPage() {
                   value={templateDescription}
                   onChange={(e) => setTemplateDescription(e.target.value)}
                   placeholder="Add a description..."
-                  className="text-sm text-gray-600 dark:text-gray-300 dark:bg-gray-800 w-full border-0 outline-none focus:ring-2 focus:ring-wf-red rounded px-2 py-1 mt-1"
+                  className="text-sm text-gray-600 dark:text-slate-300 dark:bg-slate-900 w-full border-0 outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded px-2 py-1 mt-1 placeholder-gray-400 dark:placeholder-slate-500"
                 />
               </div>
             </div>
@@ -464,14 +464,14 @@ export default function EditorPage() {
 
               <button
                 onClick={() => setShowHelp(!showHelp)}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-wf-red dark:hover:text-wf-gold hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 title="Help"
               >
                 <HelpCircle size={20} />
               </button>
               <button
                 onClick={() => setShowLivePreview(true)}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-wf-gold bg-wf-gold text-gray-900 rounded-lg hover:bg-yellow-500 hover:border-yellow-600 font-bold transition-all shadow-md"
+                className="flex items-center gap-2 px-4 py-2.5 bg-wf-gold hover:bg-yellow-500 dark:bg-yellow-600 dark:hover:bg-yellow-500 text-gray-900 dark:text-white rounded-lg font-semibold transition-all shadow-sm"
               >
                 <Play size={18} strokeWidth={2.5} />
                 Live Preview
@@ -479,14 +479,14 @@ export default function EditorPage() {
               <button
                 onClick={handleDownloadFRD}
                 disabled={isGeneratingFRD}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-green-600 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:border-green-700 font-bold transition-all shadow-md disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all shadow-sm disabled:bg-gray-400 dark:disabled:bg-slate-700 disabled:cursor-not-allowed"
               >
                 <FileText size={18} strokeWidth={2.5} />
                 {isGeneratingFRD ? 'Generating...' : 'Download FRD'}
               </button>
               <button
                 onClick={handleExport}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-gray-400 dark:hover:border-gray-500 font-bold transition-all shadow-md"
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 font-semibold transition-all shadow-sm"
               >
                 <Download size={18} strokeWidth={2.5} />
                 Export
@@ -494,7 +494,7 @@ export default function EditorPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-wf-red text-white rounded-lg hover:bg-wf-red-700 font-bold shadow-lg hover:shadow-xl transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2.5 bg-wf-red hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg font-semibold shadow-sm hover:shadow-md transition-all disabled:bg-gray-400 dark:disabled:bg-slate-700 disabled:cursor-not-allowed"
               >
                 <Save size={18} strokeWidth={2.5} />
                 {isSaving ? 'Saving...' : 'Save Template'}
@@ -505,20 +505,20 @@ export default function EditorPage() {
       </header>
 
       {showHelp && (
-        <div className="bg-red-50 border-b border-red-200 px-6 py-3">
+        <div className="bg-blue-50 dark:bg-slate-900 border-b border-blue-200 dark:border-slate-700 px-6 py-3">
           <div className="flex items-start gap-3">
-            <HelpCircle size={18} className="text-wf-red mt-0.5 flex-shrink-0" />
-            <div className="flex-1 text-sm text-gray-900">
-              <p className="font-semibold mb-1 text-wf-red">Quick Guide:</p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
+            <HelpCircle size={18} className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 text-sm text-gray-900 dark:text-slate-100">
+              <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Quick Guide:</p>
+              <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-700 dark:text-slate-300">
                 <li>Select text in the editor and click actions to create variables or add conditions</li>
-                <li>Variables use notation: <code className="bg-white px-2 py-0.5 rounded border border-gray-300 font-mono">{'{{variableName}}'}</code></li>
-                <li>Conditions use notation: <code className="bg-white px-2 py-0.5 rounded border border-gray-300 font-mono">{'{{%conditionName%}}'}</code></li>
+                <li>Variables use notation: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-gray-300 dark:border-slate-600 font-mono text-blue-600 dark:text-blue-400">{'{{variableName}}'}</code></li>
+                <li>Conditions use notation: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-gray-300 dark:border-slate-600 font-mono text-blue-600 dark:text-blue-400">{'{{%conditionName%}}'}</code></li>
                 <li>Create conditions in the left panel first, then wrap content with them</li>
                 <li>Edit JSON data on the right to see live preview changes</li>
               </ul>
             </div>
-            <button onClick={() => setShowHelp(false)} className="text-wf-red hover:text-wf-red-800">
+            <button onClick={() => setShowHelp(false)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
               <X size={18} />
             </button>
           </div>
@@ -526,11 +526,11 @@ export default function EditorPage() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-[500px] border-r bg-white dark:bg-slate-800 flex flex-col">
-          <div className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 px-4 py-2">
+        <div className="w-[500px] border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+          <div className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 px-4 py-3">
             <div className="flex items-center gap-2">
-              <FileText size={16} className="text-gray-600 dark:text-slate-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">AI Template Assistant</span>
+              <FileText size={18} className="text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">AI Template Assistant</span>
             </div>
           </div>
           <div className="flex-1 overflow-hidden">
@@ -543,12 +543,12 @@ export default function EditorPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-white dark:bg-slate-700">
-          <div className="border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 px-4 py-2">
+        <div className="flex-1 flex flex-col overflow-hidden relative bg-white dark:bg-slate-900">
+          <div className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 px-4 py-3">
             <div className="flex items-center gap-2">
-              <Code2 size={16} className="text-gray-600 dark:text-slate-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">HTML Template Editor</span>
-              <div className="ml-auto text-xs text-gray-500 dark:text-slate-400">
+              <Code2 size={18} className="text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">HTML Template Editor</span>
+              <div className="ml-auto text-xs text-gray-600 dark:text-slate-400 font-medium">
                 Select text to add variables or conditions
               </div>
             </div>
@@ -579,9 +579,9 @@ export default function EditorPage() {
           )}
         </div>
 
-        <div className="w-80 border-l bg-white dark:bg-slate-800 flex flex-col overflow-y-auto">
+        <div className="w-80 border-l border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col overflow-y-auto">
           {/* Variables Section */}
-          <div className="border-b border-gray-200 dark:border-slate-700">
+          <div className="border-b border-gray-200 dark:border-slate-800">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -592,18 +592,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-950 hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 Variables
-                <span className="text-xs font-normal px-2 py-0.5 bg-wf-red text-white rounded-full">
+                <span className="text-xs font-semibold px-2 py-0.5 bg-wf-red dark:bg-red-600 text-white rounded-full">
                   {variables.length}
                 </span>
               </span>
               {expandedSections.has('variables') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               )}
             </button>
             {expandedSections.has('variables') && (
@@ -614,7 +614,7 @@ export default function EditorPage() {
           </div>
 
           {/* Conditions Section */}
-          <div className="border-b border-gray-200 dark:border-slate-700">
+          <div className="border-b border-gray-200 dark:border-slate-800">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -625,18 +625,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-950 hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 Conditions
-                <span className="text-xs font-normal px-2 py-0.5 bg-green-600 text-white rounded-full">
+                <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-600 dark:bg-emerald-500 text-white rounded-full">
                   {conditions.length}
                 </span>
               </span>
               {expandedSections.has('conditions') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               )}
             </button>
             {expandedSections.has('conditions') && (
@@ -651,7 +651,7 @@ export default function EditorPage() {
           </div>
 
           {/* Hyperlinks Section */}
-          <div className="border-b border-gray-200 dark:border-slate-700">
+          <div className="border-b border-gray-200 dark:border-slate-800">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -662,18 +662,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-950 hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 Hyperlinks
-                <span className="text-xs font-normal px-2 py-0.5 bg-blue-600 text-white rounded-full">
+                <span className="text-xs font-semibold px-2 py-0.5 bg-blue-600 dark:bg-blue-500 text-white rounded-full">
                   {hyperlinks.length}
                 </span>
               </span>
               {expandedSections.has('hyperlinks') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               )}
             </button>
             {expandedSections.has('hyperlinks') && (
@@ -684,7 +684,7 @@ export default function EditorPage() {
           </div>
 
           {/* CTA Buttons Section */}
-          <div className="border-b border-gray-200 dark:border-slate-700">
+          <div className="border-b border-gray-200 dark:border-slate-800">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -695,18 +695,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-950 hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 CTA Buttons
-                <span className="text-xs font-normal px-2 py-0.5 bg-amber-600 text-white rounded-full">
+                <span className="text-xs font-semibold px-2 py-0.5 bg-amber-600 dark:bg-amber-500 text-white rounded-full">
                   {ctaButtons.length}
                 </span>
               </span>
               {expandedSections.has('cta') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2} />
               )}
             </button>
             {expandedSections.has('cta') && (

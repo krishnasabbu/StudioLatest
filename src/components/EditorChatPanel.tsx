@@ -251,8 +251,8 @@ ${result.error || 'Please try rephrasing your request or providing more details 
   }, [input]);
 
   return (
-    <div className="flex flex-col h-full bg-[#0e0e0e]">
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-[#0e0e0e]">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-white dark:bg-slate-900">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -261,16 +261,16 @@ ${result.error || 'Please try rephrasing your request or providing more details 
             }`}
           >
             <div
-              className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
+              className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center shadow-sm ${
                 message.type === 'bot'
-                  ? 'bg-[#1a1a1a] border border-[#2a2a2a]'
-                  : 'bg-[#2563eb]'
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700'
+                  : 'bg-gradient-to-br from-wf-red to-red-700'
               }`}
             >
               {message.type === 'bot' ? (
-                <Bot size={14} className="text-[#e8e8e8]" />
+                <Bot size={16} className="text-white" />
               ) : (
-                <User size={14} className="text-white" />
+                <User size={16} className="text-white" />
               )}
             </div>
 
@@ -278,21 +278,21 @@ ${result.error || 'Please try rephrasing your request or providing more details 
               <div
                 className={`inline-block max-w-[85%] ${
                   message.type === 'bot'
-                    ? 'text-[#e8e8e8]'
-                    : 'bg-[#2563eb] text-white px-4 py-2.5 rounded-2xl'
+                    ? 'text-gray-900 dark:text-slate-100'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-2xl shadow-md'
                 }`}
               >
                 <div
                   className="text-sm leading-relaxed whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{
                     __html: message.content
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-[#1a1a1a] rounded text-xs font-mono border border-[#2a2a2a]">$1</code>')
-                      .replace(/^• (.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-[#2563eb]">•</span><span>$1</span></div>')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+                      .replace(/`(.*?)`/g, '<code class="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded text-xs font-mono border border-gray-200 dark:border-slate-700">$1</code>')
+                      .replace(/^• (.+)$/gm, '<div class="flex items-start gap-2 my-1.5"><span class="text-blue-500 dark:text-blue-400 font-bold">•</span><span>$1</span></div>')
                   }}
                 />
                 {message.isStreaming && (
-                  <span className="inline-block w-1.5 h-4 ml-1 bg-[#2563eb] animate-pulse" />
+                  <span className="inline-block w-1.5 h-4 ml-1 bg-blue-500 animate-pulse rounded" />
                 )}
               </div>
             </div>
@@ -301,11 +301,11 @@ ${result.error || 'Please try rephrasing your request or providing more details 
 
         {isLoading && !messages[messages.length - 1]?.isStreaming && (
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-              <Bot size={14} className="text-[#e8e8e8]" />
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
+              <Bot size={16} className="text-white" />
             </div>
             <div className="inline-block">
-              <Loader className="animate-spin text-[#2563eb]" size={16} />
+              <Loader className="animate-spin text-blue-500 dark:text-blue-400" size={18} />
             </div>
           </div>
         )}
@@ -313,7 +313,7 @@ ${result.error || 'Please try rephrasing your request or providing more details 
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-[#171717] rounded-lg mx-4 mb-4">
+      <div className="bg-gray-50 dark:bg-slate-800 rounded-xl mx-4 mb-4 border border-gray-200 dark:border-slate-700 shadow-sm">
         <div className="relative">
           <textarea
             ref={textareaRef}
@@ -321,16 +321,16 @@ ${result.error || 'Please try rephrasing your request or providing more details 
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Describe what you want to change in your template..."
-            className="w-full pl-5 pt-5 pr-16 pb-3 focus:outline-none resize-none text-[#e8e8e8] placeholder-[#6b6b6b] bg-transparent text-sm"
+            className="w-full pl-5 pt-5 pr-16 pb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-xl resize-none text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 bg-transparent text-sm"
             style={{ minHeight: '80px', maxHeight: '400px', overflowY: 'hidden' }}
             disabled={isLoading}
             aria-label="Chat message input"
           />
         </div>
 
-        <div className="flex justify-between items-center text-sm px-3 pb-3 pt-2 gap-2">
+        <div className="flex justify-between items-center text-sm px-4 pb-4 pt-2 gap-3">
           <div className="flex gap-2 items-center min-w-0 flex-shrink">
-            <div className="flex items-center text-xs text-[#6b6b6b]">
+            <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 font-medium">
               {conversationHistory.filter(m => m.role === 'user').length} message{conversationHistory.filter(m => m.role === 'user').length !== 1 ? 's' : ''}
             </div>
           </div>
@@ -342,7 +342,7 @@ ${result.error || 'Please try rephrasing your request or providing more details 
               type="button"
               onClick={handleConstruct}
               disabled={isConstructing || conversationHistory.length < 2 || isLoading}
-              className="rounded-full px-3 h-7 flex items-center gap-1.5 text-xs bg-[#10b981] hover:brightness-110 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="rounded-lg px-4 h-9 flex items-center gap-2 text-xs bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-sm"
               aria-label="Apply changes"
             >
               {isConstructing ? (
@@ -361,10 +361,10 @@ ${result.error || 'Please try rephrasing your request or providing more details 
             <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
-              className="flex justify-center bg-[#2563eb] hover:brightness-110 text-white rounded-full transition-all disabled:cursor-not-allowed disabled:opacity-50 shrink-0 items-center p-1 size-7"
+              className="flex justify-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 shrink-0 items-center size-9 shadow-sm"
               aria-label="Send message"
             >
-              <Send size={14} />
+              <Send size={16} />
             </button>
           </div>
         </div>

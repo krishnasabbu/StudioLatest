@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 14 23 122;
+    --color-primary-hover: 10 17 91;
+    --color-wf-red: 215 30 40;
+    --color-wf-red-hover: 170 24 32;
+    --color-wf-gold: 255 193 7;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
