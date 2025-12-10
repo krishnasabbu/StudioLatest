@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader, Sparkles, X, Zap, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, Loader, X, Zap } from 'lucide-react';
 import { Variable, ConditionClause, ConditionOperator, LogicOperator } from '../types/template';
 import { chatWithLLM, analyzeConversationForCondition, ConversationMessage } from '../services/llmService';
 
@@ -49,7 +49,6 @@ export default function ChatConditionBuilder({
   const [isConstructing, setIsConstructing] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
@@ -249,7 +248,7 @@ Example: "Check if isPremiumUser equals true"`
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 400)}px`;
     }
   };
 
@@ -258,28 +257,17 @@ Example: "Check if isPremiumUser equals true"`
   }, [input]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-950">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+    <div className="flex flex-col h-full bg-[#0e0e0e]">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <Sparkles className="text-white" size={20} />
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-950" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              AI Condition Builder
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Chat naturally to build your condition
-            </p>
-          </div>
+          <h3 className="text-lg font-medium text-[#e8e8e8]">
+            AI Condition Builder
+          </h3>
         </div>
         {!hideCloseButton && (
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 text-[#a0a0a0] hover:text-[#e8e8e8] hover:bg-[#1a1a1a] rounded-lg transition-colors"
             aria-label="Close chat"
           >
             <X size={20} />
@@ -287,7 +275,7 @@ Example: "Check if isPremiumUser equals true"`
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-[#0e0e0e]">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -296,25 +284,25 @@ Example: "Check if isPremiumUser equals true"`
             }`}
           >
             <div
-              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
                 message.type === 'bot'
-                  ? 'bg-gradient-to-br from-blue-500 to-purple-600'
-                  : 'bg-gray-700 dark:bg-gray-600'
+                  ? 'bg-[#1a1a1a] border border-[#2a2a2a]'
+                  : 'bg-[#2563eb]'
               }`}
             >
               {message.type === 'bot' ? (
-                <Bot size={16} className="text-white" />
+                <Bot size={14} className="text-[#e8e8e8]" />
               ) : (
-                <User size={16} className="text-white" />
+                <User size={14} className="text-white" />
               )}
             </div>
 
             <div className={`flex-1 ${message.type === 'user' ? 'flex justify-end' : ''}`}>
               <div
-                className={`inline-block max-w-[85%] px-4 py-3 rounded-2xl ${
+                className={`inline-block max-w-[85%] ${
                   message.type === 'bot'
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-700'
-                    : 'bg-blue-600 text-white'
+                    ? 'text-[#e8e8e8]'
+                    : 'bg-[#2563eb] text-white px-4 py-2.5 rounded-2xl'
                 }`}
               >
                 <div
@@ -322,12 +310,12 @@ Example: "Check if isPremiumUser equals true"`
                   dangerouslySetInnerHTML={{
                     __html: message.content
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">$1</code>')
-                      .replace(/^• (.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-600">•</span><span>$1</span></div>')
+                      .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-[#1a1a1a] rounded text-xs font-mono border border-[#2a2a2a]">$1</code>')
+                      .replace(/^• (.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-[#2563eb]">•</span><span>$1</span></div>')
                   }}
                 />
                 {message.isStreaming && (
-                  <span className="inline-block w-1.5 h-4 ml-1 bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                  <span className="inline-block w-1.5 h-4 ml-1 bg-[#2563eb] animate-pulse" />
                 )}
               </div>
             </div>
@@ -336,11 +324,11 @@ Example: "Check if isPremiumUser equals true"`
 
         {isLoading && !messages[messages.length - 1]?.isStreaming && (
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Bot size={16} className="text-white" />
+            <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
+              <Bot size={14} className="text-[#e8e8e8]" />
             </div>
-            <div className="inline-block px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-              <Loader className="animate-spin text-blue-600 dark:text-blue-400" size={18} />
+            <div className="inline-block">
+              <Loader className="animate-spin text-[#2563eb]" size={16} />
             </div>
           </div>
         )}
@@ -348,60 +336,60 @@ Example: "Check if isPremiumUser equals true"`
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Describe the condition you want to create..."
-              className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none transition-all"
-              style={{ minHeight: '48px', maxHeight: '200px' }}
-              rows={1}
-              disabled={isLoading}
-              aria-label="Chat message input"
-            />
-          </div>
-
-          <button
-            onClick={handleConstruct}
-            disabled={isConstructing || conversationHistory.length < 2 || isLoading}
-            className="px-5 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl disabled:from-gray-300 disabled:to-gray-400 dark:disabled:from-gray-700 dark:disabled:to-gray-600 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md font-medium flex items-center gap-2 whitespace-nowrap"
-            aria-label="Construct condition"
-            title="Extract condition from conversation"
-          >
-            {isConstructing ? (
-              <>
-                <Loader className="animate-spin" size={18} />
-                <span className="hidden sm:inline">Constructing...</span>
-              </>
-            ) : (
-              <>
-                <Zap size={18} />
-                <span className="hidden sm:inline">Construct</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={handleSendMessage}
-            disabled={!input.trim() || isLoading}
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-            aria-label="Send message"
-          >
-            <Send size={18} />
-          </button>
+      <div className="bg-[#171717] rounded-lg mx-4 mb-4">
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="How can I help you build a condition? (or describe your logic)"
+            className="w-full pl-5 pt-5 pr-16 pb-3 focus:outline-none resize-none text-[#e8e8e8] placeholder-[#6b6b6b] bg-transparent text-sm"
+            style={{ minHeight: '80px', maxHeight: '400px', overflowY: 'hidden' }}
+            disabled={isLoading}
+            aria-label="Chat message input"
+          />
         </div>
 
-        <div className="flex items-center justify-between mt-3 text-xs text-gray-500 dark:text-gray-400">
-          <p>
-            Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-xs font-mono">Enter</kbd> to send
-          </p>
-          <p>
-            {conversationHistory.filter(m => m.role === 'user').length} message{conversationHistory.filter(m => m.role === 'user').length !== 1 ? 's' : ''}
-          </p>
+        <div className="flex justify-between items-center text-sm px-3 pb-3 pt-2 gap-2">
+          <div className="flex gap-2 items-center min-w-0 flex-shrink">
+            <div className="flex items-center text-xs text-[#6b6b6b]">
+              {conversationHistory.filter(m => m.role === 'user').length} message{conversationHistory.filter(m => m.role === 'user').length !== 1 ? 's' : ''}
+            </div>
+          </div>
+
+          <div className="flex-1 hidden sm:block"></div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleConstruct}
+              disabled={isConstructing || conversationHistory.length < 2 || isLoading}
+              className="rounded-full px-3 h-7 flex items-center gap-1.5 text-xs bg-[#10b981] hover:brightness-110 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              aria-label="Construct condition"
+            >
+              {isConstructing ? (
+                <>
+                  <Loader className="animate-spin" size={14} />
+                  <span className="hidden sm:inline">Constructing...</span>
+                </>
+              ) : (
+                <>
+                  <Zap size={14} />
+                  <span className="hidden sm:inline">Construct</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleSendMessage}
+              disabled={!input.trim() || isLoading}
+              className="flex justify-center bg-[#2563eb] hover:brightness-110 text-white rounded-full transition-all disabled:cursor-not-allowed disabled:opacity-50 shrink-0 items-center p-1 size-7"
+              aria-label="Send message"
+            >
+              <Send size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
