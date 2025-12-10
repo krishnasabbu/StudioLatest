@@ -159,7 +159,7 @@ export default function WrapInConditionModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className={`${bgClass} rounded-2xl shadow-2xl w-full max-w-[1400px] h-[90vh] flex flex-col border-2 ${
+      <div className={`${bgClass} rounded-2xl shadow-2xl w-full max-w-[1800px] h-[95vh] flex flex-col border-2 ${
         theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
       }`}>
         <div className={`flex items-center justify-between p-6 border-b ${

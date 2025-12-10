@@ -1,5 +1,150 @@
 import { Variable, ConditionClause, LogicOperator, ConditionOperator } from '../types/template';
 
+export interface ConversationMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface ConditionAnalysisResult {
+  success: boolean;
+  condition?: {
+    name: string;
+    description: string;
+    clauses: ConditionClause[];
+    logicOperator: LogicOperator;
+    hasElse: boolean;
+    elseContent: string;
+  };
+  error?: string;
+}
+
+const LLM_CHAT_API_URL = import.meta.env.VITE_LLM_CHAT_API_URL;
+const LLM_CONSTRUCT_API_URL = import.meta.env.VITE_LLM_CONSTRUCT_API_URL;
+const LLM_API_KEY = import.meta.env.VITE_LLM_API_KEY;
+
+export async function chatWithLLM(
+  conversationHistory: ConversationMessage[],
+  variables: Variable[],
+  onChunk: (chunk: string) => void
+): Promise<void> {
+  try {
+    const response = await fetch(LLM_CHAT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        messages: conversationHistory,
+        variables: variables.map(v => ({ name: v.name, type: v.type })),
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+
+          if (data === '[DONE]') {
+            continue;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+
+            if (parsed.content) {
+              onChunk(parsed.content);
+            } else if (parsed.choices?.[0]?.delta?.content) {
+              onChunk(parsed.choices[0].delta.content);
+            } else if (parsed.token) {
+              onChunk(parsed.token);
+            }
+          } catch (e) {
+            onChunk(data);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error calling LLM chat API:', error);
+    throw error;
+  }
+}
+
+export async function analyzeConversationForCondition(
+  conversationHistory: ConversationMessage[],
+  variables: Variable[]
+): Promise<ConditionAnalysisResult> {
+  try {
+    const response = await fetch(LLM_CONSTRUCT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        conversation: conversationHistory,
+        variables: variables.map(v => ({ name: v.name, type: v.type })),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.condition) {
+      return {
+        success: true,
+        condition: {
+          name: result.condition.name,
+          description: result.condition.description || '',
+          clauses: result.condition.clauses.map((c: any) => ({
+            variable: c.variable,
+            operator: c.operator as ConditionOperator,
+            value: c.value,
+            valueType: c.valueType || 'literal',
+          })),
+          logicOperator: result.condition.logicOperator || 'AND',
+          hasElse: result.condition.hasElse || false,
+          elseContent: result.condition.elseContent || '',
+        },
+      };
+    }
+
+    return {
+      success: false,
+      error: result.error || 'Failed to extract condition from conversation',
+    };
+  } catch (error) {
+    console.error('Error calling LLM construct API:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
 export interface LLMRequest {
   message: string;
   context: {
@@ -20,24 +165,6 @@ export interface LLMResponse {
   };
   suggestions?: string[];
   message: string;
-}
-
-interface ConversationMessage {
-  role: string;
-  content: string;
-}
-
-interface ConditionAnalysisResult {
-  success: boolean;
-  condition?: {
-    name: string;
-    description: string;
-    clauses: ConditionClause[];
-    logicOperator: LogicOperator;
-    hasElse: boolean;
-    elseContent: string;
-  };
-  error?: string;
 }
 
 const operatorMappings: Record<string, ConditionOperator> = {
@@ -73,196 +200,6 @@ const operatorMappings: Record<string, ConditionOperator> = {
   'does not contain': 'notContains',
   'excludes': 'notContains',
 };
-
-function simulateStreamingResponse(text: string, onChunk: (chunk: string) => void): Promise<void> {
-  return new Promise((resolve) => {
-    const words = text.split(' ');
-    let index = 0;
-
-    const interval = setInterval(() => {
-      if (index < words.length) {
-        const chunk = (index === 0 ? '' : ' ') + words[index];
-        onChunk(chunk);
-        index++;
-      } else {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 50);
-  });
-}
-
-function extractVariableFromText(text: string, variables: Variable[]): string | null {
-  const lowerText = text.toLowerCase();
-
-  for (const variable of variables) {
-    const lowerVarName = variable.name.toLowerCase();
-    if (lowerText.includes(lowerVarName)) {
-      return variable.name;
-    }
-  }
-
-  return null;
-}
-
-function extractOperatorFromText(text: string): ConditionOperator | null {
-  const lowerText = text.toLowerCase();
-
-  for (const [keyword, operator] of Object.entries(operatorMappings)) {
-    if (lowerText.includes(keyword)) {
-      return operator;
-    }
-  }
-
-  return null;
-}
-
-function extractValueFromText(text: string): string | null {
-  const quoteMatch = text.match(/["']([^"']+)["']/);
-  if (quoteMatch) {
-    return quoteMatch[1];
-  }
-
-  const trueMatch = text.match(/\b(true|yes|on|enabled)\b/i);
-  if (trueMatch) {
-    return 'true';
-  }
-
-  const falseMatch = text.match(/\b(false|no|off|disabled)\b/i);
-  if (falseMatch) {
-    return 'false';
-  }
-
-  const numberMatch = text.match(/\b(\d+)\b/);
-  if (numberMatch) {
-    return numberMatch[1];
-  }
-
-  return null;
-}
-
-function generateConditionName(variable: string, operator: string, value: string): string {
-  const operatorMap: Record<string, string> = {
-    '==': 'Is',
-    '!=': 'IsNot',
-    '>': 'GreaterThan',
-    '<': 'LessThan',
-    '>=': 'AtLeast',
-    '<=': 'AtMost',
-    'contains': 'Contains',
-    'notContains': 'DoesNotContain'
-  };
-
-  const operatorPart = operatorMap[operator] || 'Check';
-  const valuePart = value.replace(/[^a-zA-Z0-9]/g, '');
-
-  return `${variable}${operatorPart}${valuePart.charAt(0).toUpperCase()}${valuePart.slice(1)}`;
-}
-
-export async function chatWithLLM(
-  conversationHistory: ConversationMessage[],
-  variables: Variable[],
-  onChunk: (chunk: string) => void
-): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-
-  const lastUserMessage = conversationHistory
-    .filter(m => m.role === 'user')
-    .pop()?.content || '';
-
-  const lowerMessage = lastUserMessage.toLowerCase();
-
-  const variable = extractVariableFromText(lastUserMessage, variables);
-  const operator = extractOperatorFromText(lastUserMessage);
-  const value = extractValueFromText(lastUserMessage);
-
-  let response = '';
-
-  if (variable && operator && value) {
-    response = `Perfect! I understand you want to check if **${variable}** ${operator === '==' ? 'equals' : operator === '!=' ? 'does not equal' : operator === '>' ? 'is greater than' : operator === '<' ? 'is less than' : operator === 'contains' ? 'contains' : ''} **"${value}"**.\n\nThis will create a condition that shows content only when this rule is true. Would you like to add any additional conditions, or should I proceed with this?`;
-  } else if (variable && operator) {
-    response = `Great! I see you want to use the variable **${variable}** with a ${operator === '==' ? 'equals' : operator === '!=' ? 'not equals' : operator === '>' ? 'greater than' : operator === '<' ? 'less than' : ''} comparison.\n\nWhat value should **${variable}** be compared against? For example, you could say "true", "false", a number, or any text value.`;
-  } else if (variable) {
-    response = `Excellent! You've mentioned the variable **${variable}**.\n\nNow, what kind of comparison would you like to make? For example:\n• "equals" or "is"\n• "not equals" or "isn't"\n• "greater than" or "less than"\n• "contains"`;
-  } else if (lowerMessage.includes('premium') || lowerMessage.includes('customer') || lowerMessage.includes('user')) {
-    const suggestedVar = variables.find(v =>
-      v.name.toLowerCase().includes('premium') ||
-      v.name.toLowerCase().includes('customer') ||
-      v.name.toLowerCase().includes('user')
-    );
-
-    if (suggestedVar) {
-      response = `I think you're referring to the **${suggestedVar.name}** variable. Is that correct?\n\nIf so, what condition would you like to apply? For example, "equals true" or "is active"?`;
-    } else {
-      response = `I understand you want to create a condition related to ${lowerMessage.includes('premium') ? 'premium' : 'customer'} status.\n\nWhich variable from your template would you like to use? Here are your available variables:\n${variables.map(v => `• ${v.name}`).join('\n')}`;
-    }
-  } else if (lowerMessage.includes('help') || lowerMessage.includes('how') || lowerMessage.includes('what')) {
-    response = `I'm here to help you create conditions for your email template!\n\nYou can describe what you want in plain English. For example:\n• "Show this if isPremiumUser is true"\n• "Display when accountStatus equals active"\n• "Hide if balance is less than 100"\n\nYour available variables are:\n${variables.map(v => `• **${v.name}** (${v.type})`).join('\n')}\n\nJust tell me what you'd like to check!`;
-  } else if (conversationHistory.filter(m => m.role === 'user').length === 1) {
-    response = `Thanks for starting! To help you create a condition, I need to know:\n\n1. **Which variable** you want to check (from: ${variables.map(v => v.name).join(', ')})\n2. **What comparison** to make (equals, not equals, greater than, etc.)\n3. **What value** to compare against\n\nYou can describe it naturally, like: "Check if isPremiumUser equals true" or "Show when accountBalance is greater than 100"`;
-  } else {
-    response = `I'm trying to help you build a condition, but I need a bit more information.\n\nCould you tell me which variable you'd like to check and what condition you want to apply?\n\nFor example: "I want to check if userStatus equals premium" or "Display this when isActive is true"`;
-  }
-
-  await simulateStreamingResponse(response, onChunk);
-}
-
-export async function analyzeConversationForCondition(
-  conversationHistory: ConversationMessage[],
-  variables: Variable[]
-): Promise<ConditionAnalysisResult> {
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  const userMessages = conversationHistory
-    .filter(m => m.role === 'user')
-    .map(m => m.content)
-    .join(' ');
-
-  const lowerMessages = userMessages.toLowerCase();
-
-  let variable: string | null = null;
-  let operator: ConditionOperator | null = null;
-  let value: string | null = null;
-  let hasElse = false;
-  let elseContent = '';
-
-  variable = extractVariableFromText(userMessages, variables);
-  operator = extractOperatorFromText(userMessages);
-  value = extractValueFromText(userMessages);
-
-  if (lowerMessages.includes('else') || lowerMessages.includes('otherwise') || lowerMessages.includes('when false')) {
-    hasElse = true;
-  }
-
-  if (!variable || !operator || !value) {
-    return {
-      success: false,
-      error: 'Could not extract complete condition from conversation. Please provide variable, operator, and value.'
-    };
-  }
-
-  const conditionName = generateConditionName(variable, operator, value);
-  const description = `Checks if ${variable} ${operator === '==' ? 'equals' : operator === '!=' ? 'does not equal' : operator === '>' ? 'is greater than' : operator === '<' ? 'is less than' : operator === 'contains' ? 'contains' : operator} ${value}`;
-
-  const clause: ConditionClause = {
-    variable,
-    operator,
-    value,
-    valueType: 'literal'
-  };
-
-  return {
-    success: true,
-    condition: {
-      name: conditionName,
-      description,
-      clauses: [clause],
-      logicOperator: 'AND' as LogicOperator,
-      hasElse,
-      elseContent
-    }
-  };
-}
 
 function extractVariable(message: string, variables: Array<{ name: string }>): string | undefined {
   const lowerMessage = message.toLowerCase();
