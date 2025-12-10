@@ -526,11 +526,11 @@ export default function EditorPage() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-96 border-r bg-white dark:bg-gray-800 flex flex-col">
-          <div className="border-b bg-gray-50 dark:bg-gray-900 px-4 py-2">
+        <div className="w-[500px] border-r bg-white dark:bg-slate-800 flex flex-col">
+          <div className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 px-4 py-2">
             <div className="flex items-center gap-2">
-              <FileText size={16} className="text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Template Assistant</span>
+              <FileText size={16} className="text-gray-600 dark:text-slate-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">AI Template Assistant</span>
             </div>
           </div>
           <div className="flex-1 overflow-hidden">
@@ -543,12 +543,12 @@ export default function EditorPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-white">
-          <div className="border-b bg-gray-50 px-4 py-2">
+        <div className="flex-1 flex flex-col overflow-hidden relative bg-white dark:bg-slate-700">
+          <div className="border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 px-4 py-2">
             <div className="flex items-center gap-2">
-              <Code2 size={16} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">HTML Template Editor</span>
-              <div className="ml-auto text-xs text-gray-500">
+              <Code2 size={16} className="text-gray-600 dark:text-slate-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">HTML Template Editor</span>
+              <div className="ml-auto text-xs text-gray-500 dark:text-slate-400">
                 Select text to add variables or conditions
               </div>
             </div>
@@ -579,9 +579,9 @@ export default function EditorPage() {
           )}
         </div>
 
-        <div className="w-80 border-l bg-white dark:bg-gray-800 flex flex-col overflow-y-auto">
+        <div className="w-80 border-l bg-white dark:bg-slate-800 flex flex-col overflow-y-auto">
           {/* Variables Section */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="border-b border-gray-200 dark:border-slate-700">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -592,18 +592,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
                 Variables
                 <span className="text-xs font-normal px-2 py-0.5 bg-wf-red text-white rounded-full">
                   {variables.length}
                 </span>
               </span>
               {expandedSections.has('variables') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               )}
             </button>
             {expandedSections.has('variables') && (
@@ -614,7 +614,7 @@ export default function EditorPage() {
           </div>
 
           {/* Conditions Section */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="border-b border-gray-200 dark:border-slate-700">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -625,18 +625,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
                 Conditions
                 <span className="text-xs font-normal px-2 py-0.5 bg-green-600 text-white rounded-full">
                   {conditions.length}
                 </span>
               </span>
               {expandedSections.has('conditions') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               )}
             </button>
             {expandedSections.has('conditions') && (
@@ -651,7 +651,7 @@ export default function EditorPage() {
           </div>
 
           {/* Hyperlinks Section */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="border-b border-gray-200 dark:border-slate-700">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -662,18 +662,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
                 Hyperlinks
                 <span className="text-xs font-normal px-2 py-0.5 bg-blue-600 text-white rounded-full">
                   {hyperlinks.length}
                 </span>
               </span>
               {expandedSections.has('hyperlinks') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               )}
             </button>
             {expandedSections.has('hyperlinks') && (
@@ -684,7 +684,7 @@ export default function EditorPage() {
           </div>
 
           {/* CTA Buttons Section */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="border-b border-gray-200 dark:border-slate-700">
             <button
               onClick={() => {
                 const newExpanded = new Set(expandedSections);
@@ -695,18 +695,18 @@ export default function EditorPage() {
                 }
                 setExpandedSections(newExpanded);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
                 CTA Buttons
                 <span className="text-xs font-normal px-2 py-0.5 bg-amber-600 text-white rounded-full">
                   {ctaButtons.length}
                 </span>
               </span>
               {expandedSections.has('cta') ? (
-                <ChevronDown size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronDown size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               ) : (
-                <ChevronRight size={18} className="text-gray-600 dark:text-gray-400" strokeWidth={2.5} />
+                <ChevronRight size={18} className="text-gray-600 dark:text-slate-400" strokeWidth={2.5} />
               )}
             </button>
             {expandedSections.has('cta') && (
